@@ -139,7 +139,7 @@ class FindKthLargest:
         for n in nums[k:]:
             kth = heapq.heappop(heap)
             if n > kth:
-                heapq.heappush(n)
+                heapq.heappush(heap, n)
             else:
                 heapq.heappush(heap, kth)
 
@@ -229,11 +229,9 @@ class LengthofLongestSubstring:
         window = []
         ret = 0
         for c in s:
-            if c not in set(window):
-                window.append(c)
             while c in set(window):
                 window.pop(0)
-
+            window.append(c)
             ret = max(ret, len(window))
         return ret
     
@@ -2200,6 +2198,20 @@ class RightSideView:
             ans.append(tmp[-1])
 
         return ans
+    def rightSideView(self, root):
+        if not root:
+            return []
+        stack = [root]
+        ans = []
+        while stack:
+            size = len(stack)
+            for i in range(size):
+                node = stack.pop(0)
+                if i==(size-1):
+                    ans.append(node.val)
+                if node.left: stack.append(node.left)
+                if node.right:stack.append(node.right)
+        return ans
 
 class MinRefuelStops:
     # 最少加油次数
@@ -2432,6 +2444,8 @@ class SortOddEvenList:
             return head
 
         odd_list, even_list = self.partion(head)
+        even_list = self.reverse(even_list)
+        return self.merge(odd_list, even_list)
 
     def partion(self, head):
         evenHead = head.next
@@ -2840,3 +2854,291 @@ class LongestPalindromeSubseq:
                     dp[i][j] = max(dp[i+1][j], dp[i][j-1])
 
         return dp[0][n-1]
+
+class MinStack:
+    # 最小栈
+    def __init__(self):
+        self.stack = []
+        self.min_stack = [100000000000]
+
+    def push(self, val: int) -> None:
+        self.stack.append(val)
+        self.min_stack.append(min(val, self.min_stack[-1]))
+
+    def pop(self) -> None:
+        self.stack.pop()
+        self.min_stack.pop()
+
+    def top(self) -> int:
+        return self.stack[-1]
+
+    def getMin(self) -> int:
+        return self.min_stack[-1]
+
+class Search:
+    # 搜索旋转排序数组
+    def search(self, nums, target):
+        left, right = 0, len(nums)-1
+        while left<=right:
+            mid = left+(right-left)//2
+            if nums[mid] == target:
+                return mid
+            if nums[0]<=nums[mid]:
+                if nums[0]<target<nums[mid]:
+                    right = mid+1
+                else:
+                    left = mid-1
+            else:  # nums[0]>nums[mid] 表明存在逆序
+                if nums[mid]<target<=nums[-1]:
+                    left = mid+1
+                else:
+                    right = mid-1
+        return -1
+
+class PathSum:
+    def pathSum(self, root, targetSum):
+        self.ans = []
+
+        def dfs(root, path, _sum):
+            if not root:
+                return 
+
+            _sum += root.val
+            path.append(root.val)
+            if not root.left and not root.right:
+                if _sum==targetSum:
+                    self.ans.append(path[:])
+
+            dfs(root.left, path)
+            dfs(root.right, path)
+            _sum -= root.val
+            path.pop()
+
+        path = []
+        _sum = 0
+        dfs(root, path, _sum)
+        return self.ans
+
+class ReorderList:
+    def reorderList(self, head):
+        if not head:
+            return 
+        slow, fast = head, head
+        while fast.next and fast.next.next:
+            slow = slow.next
+            fast = fast.next.next
+        l1, l2 = head, slow.next
+        slow.next = None
+        rl2 = self.reverse(l2)
+        self.merge(l1, rl2)
+
+    def reverse(self, head):
+        pre, cur = None, head
+        while cur:
+            nxt = cur.next
+            cur.next = pre
+            pre = cur
+            cur = nxt
+        return pre
+
+    def merge(self, l1, l2):
+        while l1 and l2:
+            l1_next = l1.next
+            l2_next = l2.next
+
+            l1.next = l2
+            l1 = l1_next
+
+            l2.next = l1
+            l2 = l2_next
+
+class Solution:
+    def sortList(self, head: ListNode) -> ListNode:
+        def sortFunc(head: ListNode, tail: ListNode) -> ListNode:
+            if not head:
+                return head
+            if head.next == tail:
+                head.next = None
+                return head
+            slow = fast = head
+            while fast != tail:
+                slow = slow.next
+                fast = fast.next
+                if fast != tail:
+                    fast = fast.next
+            mid = slow
+            return merge(sortFunc(head, mid), sortFunc(mid, tail))
+
+        def merge(head1: ListNode, head2: ListNode) -> ListNode:
+            dummyHead = ListNode(0)
+            temp, temp1, temp2 = dummyHead, head1, head2
+            while temp1 and temp2:
+                if temp1.val <= temp2.val:
+                    temp.next = temp1
+                    temp1 = temp1.next
+                else:
+                    temp.next = temp2
+                    temp2 = temp2.next
+                temp = temp.next
+            if temp1:
+                temp.next = temp1
+            elif temp2:
+                temp.next = temp2
+            return dummyHead.next
+
+        return sortFunc(head, None)
+
+class SortList:
+    def sortList(self, head):
+        if not head or not head.next:
+            return head
+        dummynode = ListNode(-1)
+        dummynode.next = head
+
+        return self.quick_sort(dummynode, None)
+
+    def quick_sort(self, head, end):
+        if head==end or head.next == end:
+            return head
+
+        partion = head.next
+        tmp_head = ListNode(-1)
+        p, tp = partion, tmp_head
+        while(p.next!=end):
+            if p.next.val < partion.val:
+                tp.next = p.next
+                tp = tp.next
+                p.next = p.next.next
+            else:
+                p = p.next
+        tp.next = head.next
+        head.next = tmp_head.next
+        self.quick_sort(head, partion)
+        self.quick_sort(partion, end)
+        return head.next
+
+class Dijkstra:
+    def maxProbability(self, n: int, edges: List[List[int]], succProb: List[float], start: int, end: int) -> float:
+        graph = collections.defaultdict(list)
+        for i, (x, y) in enumerate(edges):
+            graph[x].append((succProb[i], y))
+            graph[y].append((succProb[i], x))
+
+        que = [(-1.0, start)]
+        prob = [0.0] * n
+        prob[start] = 1.0
+
+        while que:
+            pr, node = heapq.heappop(que)
+            pr = -pr
+            if pr < prob[node]:
+                continue
+            for prNext, nodeNext in graph[node]:
+                if prob[nodeNext] < prob[node] * prNext:
+                    prob[nodeNext] = prob[node] * prNext
+                    heapq.heappush(que, (-prob[nodeNext], nodeNext))
+
+        return prob[end]
+
+class MinWindow:
+    # 最小覆盖子串
+    def minWindow(self, s: str, t: str) -> str:
+        need=collections.defaultdict(int)
+        for c in t:
+            need[c]+=1
+        needCnt=len(t)
+        i=0
+        res=(0,float('inf'))
+        for j,c in enumerate(s):
+            if need[c]>0:
+                needCnt-=1
+            need[c]-=1
+            if needCnt==0:       #步骤一：滑动窗口包含了所有T元素
+                while True:      #步骤二：增加i，排除多余元素
+                    c=s[i] 
+                    if need[c]==0:
+                        break
+                    need[c]+=1
+                    i+=1
+                if j-i<res[1]-res[0]:   #记录结果
+                    res=(i,j)
+                need[s[i]]+=1  #步骤三：i增加一个位置，寻找新的满足条件滑动窗口
+                needCnt+=1
+                i+=1
+        return '' if res[1]>len(s) else s[res[0]:res[1]+1]    #如果res始终没被更新过，代表无满足条件的结果
+
+class MaximalSquare:
+    def maximalSquare(self, matrix):
+        m, n = len(matrix), len(matrix[0])
+        dp = [ [0]*n for _ in range(m) ]
+        for i in range(m):
+            if matrix[i][0]=="1":
+                dp[i][0] = 1
+        for j in range(n):
+            if matrix[0][j] == "1":
+                dp[0][j] = 1
+
+        for i in range(1, m):
+            for j in range(1, n):
+                if matrix[i][j] != "1":
+                    dp[i][j] = 0
+                else:
+                    dp[i][j] = min(dp[i-1][j-1], dp[i][j-1], dp[i-1][j]) + 1
+        return max([max(_) for _ in dp])**2
+
+class Isvalid:
+    def isvalid(self, s):
+        c_dic = {"(":")", "{":"}", "[":"]", "?":"?"}
+        stack = ["?"]
+        for c in s:
+            if c in c_dic:
+                stack.append(c)
+            else:
+                _c = stack.pop(-1)
+                if _c != c_dic[c]:
+                    return False
+        return len(stack)==1
+
+class CombinationSum:
+    # 组合总和
+    def combinationSum(self, nums, target):
+        self.ans = []
+        n = len(nums)
+        def dfs(nums, begin, size, path, target):
+            if target==0:
+                self.ans.append(path[:])
+                return
+            for i in range(begin, size):
+                if target<nums[i]: 
+                    break
+                dfs(nums, i, size, path+[nums[i]], target-nums[i])
+        nums.sort()
+        path = []
+        dfs(nums, 0, n, path, target)
+        return self.ans
+
+class Viterbi:
+    def viterbi(self, obs, states, start_prob, trans_prob, emission_prob):
+        T = len(obs)
+        N = len(states)
+
+        # 初始化Viterbi矩阵和路径矩阵
+        viterbi_mat = np.zeros((N, T))
+        path_mat = np.zeros((N, T), dtype=int)
+
+        # 初始状态概率
+        viterbi_mat[:, 0] = start_prob * emission_prob[:, obs[0]]
+        path_mat[:, 0] = 0
+
+        for t in range(1, T):
+            for s in range(N):
+                prob = viterbi_mat[:, t-1] * trans_prob[:, s] * emission_prob[s, obs[t]]
+                viterbi_mat[s, t] = np.max(prob)
+                path_mat[s,t] = np.argmax(prob)
+
+        # 回溯最优路径
+        best_path = [np.argmax(viterbi_mat[:, -1])]
+        for t in range(T-1, 0, -1):
+            best_path.insert(0, path_mat[best_path[0], t])
+
+        return best_path
