@@ -999,6 +999,28 @@ class Sort:
 
         return nums
 
+    def merge_sort(self, nums):
+        def mergesort(nums, l, r):
+            if l == r:
+                return
+            mid = (l + r) // 2
+            merge_sort(nums, l, mid)
+            merge_sort(nums, mid + 1, r)
+            tmp = []
+            i, j = l, mid + 1
+            while i <= mid or j <= r:
+                if i > mid or (j <= r and nums[j] < nums[i]):
+                    tmp.append(nums[j])
+                    j += 1
+                else:
+                    tmp.append(nums[i])
+                    i += 1
+            nums[l: r + 1] = tmp
+
+        mergesort(nums, 0, len(nums) - 1)
+        return nums
+
+
     def heap_sort(self, nums):
         def build_heap(nums, i, n):
             if i>=n:
@@ -1206,6 +1228,24 @@ class AddTwoNumbers:
 
         return head
 
+    def addtwonumbers(self, l1, l2):
+        dummynode = ListNode()
+        cur = dummynode
+        cx = 0
+        while l1 or l2 or cx:
+            _sum = cx
+            if l1:
+                _sum += l1.val
+                l1 = l1.next
+            if l2:
+                _sum += l2.val
+                l2 = l2.next
+            node = ListNode(val=_sum%10)
+            cx = _sum//10
+            cur.next = node
+            cur = node
+        return dummynode.next
+
 class UniquePaths:
     # 不同路径数
     def uniquePaths(self, m, n):
@@ -1245,6 +1285,7 @@ class UniquePathsWithObstacles:
         return dp[-1][-1]
 
 class LongestConsecutive:
+    # 最长连续序列
     def longestConsecutive(self, nums):
         num_set = set(nums)
         maxlen = 0
@@ -1498,7 +1539,7 @@ class LongestValidParatheses:
             if c=="(":
                 stack.append(i)
             else:
-                if s[stack[-1]]==')':
+                if s[stack[-1]]=='(':
                     stack.pop(-1)
                     _max = max(_max, i-stack[-1])
                 else:
@@ -2909,8 +2950,8 @@ class PathSum:
                 if _sum==targetSum:
                     self.ans.append(path[:])
 
-            dfs(root.left, path)
-            dfs(root.right, path)
+            dfs(root.left, path, _sum)
+            dfs(root.right, path, _sum)
             _sum -= root.val
             path.pop()
 
@@ -3142,3 +3183,384 @@ class Viterbi:
             best_path.insert(0, path_mat[best_path[0], t])
 
         return best_path
+
+class FindPeakElement:
+    def findPeakElement(self, nums):
+        n = len(nums)
+        def get(inx):
+            if inx==-1 or inx>=n:
+                return float("-inf")
+            return nums[inx]
+
+        left, rigth = 0, n-1
+        ans = -1
+        while left<=right:
+            mid = (left+right)//2
+            if get(mid)>get(mid-1) and get(mid)>get(mid+1):
+                ans = mid
+                break
+            if get(mid)<get(mid+1):
+                left = mid+1
+            else:
+                right= mid-1
+        return ans
+
+class BackToOrigin:
+    # 圆环回原点问题: 圆环上有10个点，编号为0~9。从0点出发，每次可以逆时针和顺时针走一步，问走n步回到0点共有多少种走法。
+    # 走n步到0的方案数=走n-1步到1的方案数+走n-1步到9的方案数。
+    def backToOrigin(self, n):
+        length = 10 # 0-9 总共10个数
+        dp = [ [0 for i in range(length)] for j in range(n) ] #dp[i][j] 表示走i步走到j的方案数
+        dp[0][0] = 1
+
+        for i in range(1, n+1):
+            for j in range(length):
+                dp[i][j] = dp[i-1][(j-1+length)%length] + dp[i-1][(j+1)%length]
+
+        return dp[n][0]
+
+class Solution:
+    def sortList(self, head: ListNode) -> ListNode:
+        def merge(head1: ListNode, head2: ListNode) -> ListNode:
+            dummyHead = ListNode(0)
+            temp, temp1, temp2 = dummyHead, head1, head2
+            while temp1 and temp2:
+                if temp1.val <= temp2.val:
+                    temp.next = temp1
+                    temp1 = temp1.next
+                else:
+                    temp.next = temp2
+                    temp2 = temp2.next
+                temp = temp.next
+            if temp1:
+                temp.next = temp1
+            elif temp2:
+                temp.next = temp2
+            return dummyHead.next
+        
+        if not head:
+            return head
+        
+        length = 0
+        node = head
+        while node:
+            length += 1
+            node = node.next
+        
+        dummyHead = ListNode(0, head)
+        subLength = 1
+        while subLength < length:
+            prev, curr = dummyHead, dummyHead.next
+            while curr:
+                head1 = curr
+                for i in range(1, subLength):
+                    if curr.next:
+                        curr = curr.next
+                    else:
+                        break
+                head2 = curr.next
+                curr.next = None
+                curr = head2
+                for i in range(1, subLength):
+                    if curr and curr.next:
+                        curr = curr.next
+                    else:
+                        break
+                
+                succ = None
+                if curr:
+                    succ = curr.next
+                    curr.next = None
+                
+                merged = merge(head1, head2)
+                prev.next = merged
+                while prev.next:
+                    prev = prev.next
+                curr = succ
+            subLength <<= 1
+        
+        return dummyHead.next
+
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, val=0, next=None):
+#         self.val = val
+#         self.next = next
+class Solution:
+    def sortList(self, head: Optional[ListNode]) -> Optional[ListNode]:
+        def merge(left, right):
+            dummy = ListNode(-1)
+            cur = dummy
+            while left and right:
+                if left.val <= right.val:
+                    cur.next = left
+                    left = left.next
+                else:
+                    cur.next = right
+                    right = right.next
+                cur = cur.next
+            if left:
+                cur.next = left
+            if right:
+                cur.next = right
+            return dummy.next
+        def mergesort(head):
+            if not head or not head.next:
+                return head
+            slow, fast = head, head.next
+            while fast and fast.next:
+                slow = slow.next
+                fast = fast.next.next
+            left_head, right_head = head, slow.next
+            slow.next = None
+            return merge(mergesort(left_head), mergesort(right_head))
+        return mergesort(head)
+
+class Solution:
+    def diameterOfBinaryTree(self, root):
+        max_path = 0
+        def dfs(root):
+            if not root:
+                return 0
+            left_depth = dfs(root.left)
+            right_depth = dfs(root.right)
+            max_path = max(left_depth + right_depth + 1, max_path)
+            return max(left_depth, right_depth) + 1
+        dfs(root)
+        return max_path-1
+
+class Solution:
+    # 单词查找
+    def exist(self, board, word):
+        self.m, self.n = len(board), len(board[0])
+        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+
+        def dfs(i, j, k, visited):
+            if i<0 or i>=self.m or j<0 or j>=self.n or (i,j) in visited:
+                return False
+            if board[i][j]!=word[k]:
+                return False
+            if k==len(word)-1:
+                return True
+
+            visited.add((i, j))
+            for dx, dy in directions:
+                n_x, n_y = i+dx, j+dy
+                if dfs(n_x, n_y, k+1, visited):
+                    return True
+            visited.remove((i,j))
+            return False
+
+        visited = set()
+        for i in range(self.m):
+            for j in range(self.n):
+                if dfs(i, j, 0, visited):
+                    return True
+        return False
+
+class DeleteDuplicates:
+    # 删除链表中的重复元素
+    def deleteDuplicates2(self, head):
+        if not head or not head.next:
+            return head
+
+        dummynode = ListNode(val=-1)
+        dummynode.next = head
+        pre, cur = dummynode, head
+        while cur:
+            nxt = cur.next
+            flag = False
+            while nxt and nxt.val==cur.val:
+                flag = True
+                nxt = nxt.next
+
+            if flag:
+                pre.next = nxt
+            else:
+                pre = cur
+            cur = nxt
+        return dummynode.next
+
+    def deleteDuplicates(self, head):
+        if not head or not head.next:
+            return head
+
+        dummynode = ListNode(val=-1, next=head)
+        cur = head
+        while cur:
+            nxt = cur.next
+            while nxt.val==cur.val:
+                nxt = nxt.next
+            cur.next = nxt
+            cur = cur.next
+        return dummynode.next
+        
+class GenerateParenthesis:
+    # 括号生成
+    def generateParenthesis(self, n):
+        if n<=0:
+            return ''
+        elif n==1:
+            return '()'
+        res = set()
+        for i in self.generateParenthesis(n-1):
+            for j in range(len(i)):
+                res.add(i[0:j] + '()' + i[j:])
+        return list(res)
+
+class InorderTraversal:
+    def inorderTraver(self, root):
+        if not root:
+            return
+        self.ans = []
+        stack = []
+        while stack or root:
+            while root:
+                stack.append(root)
+                root = root.left
+            root = stack.pop()
+            self.ans.append(root.val)
+            root = root.right
+        return self.ans
+
+class dailyTemperatures:
+    def dailyTemperatures(self, temperatures):
+        n = len(temperatures)
+        result = [0]*n
+        stack = []
+        for i,temperature in enumerate(temperatures):
+            while stack and temperatures[stack[-1]]<temperature:
+                pre_inx = stack.pop()
+                result[pre_inx] = i-pre_inx
+            stack.append(i)
+
+        return result
+
+class Subset:
+    # 子集
+    def subset(self, nums):
+        # 使用回溯
+        size = len(nums)
+        sets = [[]]
+        for n in nums:
+            for j in range(len(sets)):
+                sets.append(set[j]+n)
+        return sets
+
+class KthLargest:
+    def Kthlargest(self, root, k):
+        self.res = None
+        self.k = k
+        def dfs(root):
+            if not root:
+                return
+            dfs(root.right)
+            self.k -= 1
+            if self.k==0:
+                self.res = root.val
+                return 
+            dfs(root.left)
+        dfs(root)
+        return self.res
+
+INT_MAX = 2 ** 31 - 1
+INT_MIN = -2 ** 31
+class Automaton:
+    def __init__(self):
+        self.state = 'start'
+        self.sign = 1
+        self.ans = 0
+        self.table = {
+            'start': ['start', 'signed', 'in_number', 'end'],
+            'signed': ['end', 'end', 'in_number', 'end'],
+            'in_number': ['end', 'end', 'in_number', 'end'],
+            'end': ['end', 'end', 'end', 'end'],
+        }
+
+    def get_col(self, c):
+        if c.isspace():
+            return 0
+        if c == '+' or c == '-':
+            return 1
+        if c.isdigit():
+            return 2
+        return 3
+
+    def get(self, c):
+        self.state = self.table[self.state][self.get_col(c)]
+        if self.state == 'in_number':
+            self.ans = self.ans * 10 + int(c)
+            self.ans = min(self.ans, INT_MAX) if self.sign == 1 else min(self.ans, -INT_MIN)
+        elif self.state == 'signed':
+            self.sign = 1 if c == '+' else -1
+
+class Solution:
+    def myAtoi(self, str: str) -> int:
+        automaton = Automaton()
+        for c in str:
+            automaton.get(c)
+        return automaton.sign * automaton.ans
+
+class KMP:
+    def __init__(self, pattern):
+        self.pattern = pattern
+        self.next_list = self._build_next(pattern)
+
+    def _build_next(self, pattern):
+        self.next_list = [0]
+        prefix_len = 0
+        i = 1
+        while i < len(self.pattern):
+            if self.pattern[i] == self.pattern[prefix_len]:
+                prefix_len += 1
+                self.next_list.append(prefix_len)
+                i += 1
+            else:
+                if prefix_len == 0:
+                    self.next_list.append(0)
+                    i += 1
+                else:
+                    prefix_len = next_list[prefix_len-1]
+
+    def search(self, source):
+        m = len(source)
+        n = len(self.pattern)
+
+        i,j = 0, 0
+        while i<m:
+            if source[i]==self.pattern[j]:
+                i+=1
+                j+=1
+            elif j>0:
+                j = self.next_list[j-1]
+            else:
+                i += 1  # 第一个字符就没有匹配到
+
+            if j==n:
+                return i-j
+
+        return -1
+
+class Solution:
+    def swapPairs(self, head: ListNode) -> ListNode:
+        if not head or not head.next:
+            return head
+        newHead = head.next
+        head.next = self.swapPairs(newHead.next)
+        newHead.next = head
+        return newHead
+
+    def swapPairs(self, head):
+        dummynode = ListNode(-1)
+        dummynode.next = head
+        tmp = dummynode
+        while tmp.next and tmp.next.next:
+            node1 = tmp.next
+            node2 = tmp.next.next
+            tmp.next = node2
+            node1.next = node2.next
+            node2.next = node1
+            tmp = node1
+
+        return dummynode.next
+
