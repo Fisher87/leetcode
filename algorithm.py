@@ -1004,8 +1004,8 @@ class Sort:
             if l == r:
                 return
             mid = (l + r) // 2
-            merge_sort(nums, l, mid)
-            merge_sort(nums, mid + 1, r)
+            mergesort(nums, l, mid)
+            mergesort(nums, mid + 1, r)
             tmp = []
             i, j = l, mid + 1
             while i <= mid or j <= r:
@@ -3564,3 +3564,197 @@ class Solution:
 
         return dummynode.next
 
+class Solution:
+    # 二叉树展开为链表
+    def flatten(self, root: Optional[TreeNode]) -> None:
+        """
+        Do not return anything, modify root in-place instead.
+        """
+        if not root:
+            return
+        stack = [root]
+        pre = None
+
+        while stack:
+            cur = stack.pop()
+            if pre:
+                pre.left = None
+                pre.right= cur
+            if cur.right:
+                stack.append(cur.right)
+            if cur.left:
+                stack.append(cur.left)
+            pre = cur
+
+class Solution:
+    # IP 复原
+    def restoreIpAddresses(self, s: str) -> List[str]:
+        size = len(s)
+        if size>12 or size<4:
+            return []
+        path = []
+        self.res = []
+        self.dfs(s, size, 0, 0, path)
+        return self.res
+
+    def dfs(self, s, size, split_times, begin, path):
+        if begin==size:
+            if split_times == 4:
+                self.res.append('.'.join(path))
+            return
+        # 如果剩下的部分长度小于可分配最小长度或者大于可分配最大长度，则无效;
+        if size-begin<(4-split_times) or size-begin>3*(4-split_times):
+            return
+        for i in range(3):
+            if begin+i>size:
+                break
+            ip_segment = self.judge_if_ip_segment(s, begin, begin+i)
+            if ip_segment!=-1:
+                path.append(str(ip_segment))
+                self.dfs(s, size, split_times+1, begin+i+1, path)
+                path.pop()
+
+    def judge_if_ip_segment(self, left, right):
+        size = right-left+1
+        if size>1 and s[left]=='0': # 以'0'开头不合法
+            return -1
+        res = int(s[left:right+1])
+        if res>255:
+            return -1
+        return res
+
+"""
+# Definition for a Node.
+class Node:
+    def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):
+        self.val = int(x)
+        self.next = next
+        self.random = random
+
+class Solution:
+    # 复制带随机指针的链表
+    def copyRandomList(self, head: 'Optional[Node]') -> 'Optional[Node]':
+        if not head:
+            return None
+        
+        # A->A'->B->B'
+        p = head
+        while p:
+            new_node = Node(p.val)
+            new_node.next = p.next
+            p.next = new_node
+            p = new_node.next
+        
+        # copy random
+        p = head
+        while p:
+            if p.random:
+                p.next.random = p.random.next
+            p = p.next.next
+        
+        # 拆分链表
+        p = head
+        dummy = Node(-1)
+        cur = dummy
+        while p:
+            cur.next = p.next
+            cur = cur.next
+            p.next = cur.next
+            p = p.next
+            
+        return dummy.next
+
+class SumNumbers:
+    def sumNumbers(self, root):
+        self.sum = 0
+        def dfs(root, num):
+            if not root:
+                return 0
+            num = 10*num + root.val
+            if not root.left and not root.right:
+                self.sum += num
+
+            dfs(root.left, num)
+            dfs(root.right, num)
+
+        dfs(root, 0)
+        return self.sum
+
+class WidthOfBinaryTree:
+    # 二叉树最大宽度
+    def widthOfBinaryTree(self, root):
+        self.width = 1
+        stack = []
+        if not root:
+            return 0
+        stack.append((1, root))
+        while stack:
+            width = stack[-1][0] - stack[0][0] + 1
+            self.width = max(width, self.width)
+
+            size = len(stack)
+            for i in range(size):
+                (inx,node) = stack.pop(0)
+                if node.left:
+                    stack.append((node.left, inx*2))
+                if node.right:
+                    stack.append((node.right, inx*2+1))
+        return self.width
+
+class NextGreaterElement:
+    def nextGreaterElement(self, n):
+        nums = list(str(n)) 
+        i = len(nums)-2
+        while i>=0 and nums[i]>=nums[i+1]:
+            i -= 1
+        if i<0:
+            return -1
+
+        j = len(nums)-1
+        while j>=0 and nums[j] <= nums[i]:
+            j -= 1
+        nums[i], nums[j] = nums[j], nums[i]
+        nums[i+1:] = nums[i+1:][::-1]
+        ans = int(''.join(nums))
+        return ans if ans < 2 ** 31 else -1
+
+class OddEvenList:
+    # 奇偶链表
+    def oddEvenList(self, head):
+        if not head and not head.next:
+            return head
+        even_head = head.next
+        odd, even = head, even_head
+        while even and even.next:
+            odd.next = even.next
+            odd = odd.next
+            even.next = odd.next
+            even = even.next
+        odd.next = even_head
+        return head
+
+class rotateRight:
+    # 旋转链表
+    def rotateRight(self, head, k):
+        if not head:
+            return head
+
+        size = 0
+        cur = head
+        while cur:
+            cur = cur.next
+            size += 1
+        k = k%size
+        if k==0:
+            return head
+        slow, fast = head, head.next
+        for i in range(k):
+            fast = fast.next
+
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next
+        newhead = slow.next
+        slow.next = None
+        fast.next = head
+        return newhead
