@@ -3758,3 +3758,74 @@ class rotateRight:
         slow.next = None
         fast.next = head
         return newhead
+
+class Solution:
+    # 最佳买卖股票时机
+    def maxProfit(self, k: int, prices: List[int]) -> int:
+        if not prices:
+            return 0
+
+        n = len(prices)
+        k = min(k, n // 2)
+        buy = [[0] * (k + 1) for _ in range(n)]
+        sell = [[0] * (k + 1) for _ in range(n)]
+
+        buy[0][0], sell[0][0] = -prices[0], 0
+        for i in range(1, k + 1):
+            buy[0][i] = sell[0][i] = float("-inf")
+
+        for i in range(1, n):
+            buy[i][0] = max(buy[i - 1][0], sell[i - 1][0] - prices[i])
+            for j in range(1, k + 1):
+                buy[i][j] = max(buy[i - 1][j], sell[i - 1][j] - prices[i])
+                sell[i][j] = max(sell[i - 1][j], buy[i - 1][j - 1] + prices[i]);  
+
+        return max(sell[n - 1])
+
+    def maxProfit(self, k, prices):
+        if not prices:
+            return 0
+        n = len(prices)
+        k = min(k, n//2)
+        buy = [ -prices[0] ] *(k+1)
+        sell = [0] *(k+1)
+
+        for i in range(1, n):
+            for j in range(1, k+1):
+                buy[j] = max(buy[j], sell[j-1]-prices[i])
+                sell[j]= max(sell[j], buy[j]+prices[i])
+        return sell[k]
+
+class ShortestSubarray:
+    # 和最少为k的最短数组: 先计算前缀和，然后比较
+    def shortestSubarray(self, nums, k):
+        from itertools import accumulate
+        ans = float("inf")
+        s = list(accumulate(nums, initial=0))
+        q = deque()
+        for i, cur_s in enumerate(s):
+            while q and cur_s-s[q[0]]>=k:
+                ans = min(ans, i-q.popleft())
+            while q and s[q[-1]]>=cur_s:
+                q.pop()
+
+            q.append(i)
+        return ans if ans<inf else -1
+
+class Solution:
+    # 将有序数组转换为二叉搜索树
+    def sortedArrayToBST(self, nums: List[int]) -> TreeNode:
+        def helper(left, right):
+            if left > right:
+                return None
+
+            # 总是选择中间位置右边的数字作为根节点
+            mid = (left + right + 1) // 2
+
+            root = TreeNode(nums[mid])
+            root.left = helper(left, mid - 1)
+            root.right = helper(mid + 1, right)
+            return root
+
+        return helper(0, len(nums) - 1)
+
