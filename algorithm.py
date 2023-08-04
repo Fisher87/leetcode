@@ -1514,6 +1514,7 @@ class MaxProfit:
         return ans
 
 class FindLength:
+    # 查找最长重复子数组
     def findLength(self, nums1, nums2):
         m, n = len(nums1), len(nums2)
         dp = [ [0]*(n+1) for _ in range(m+1) ]
@@ -3829,3 +3830,121 @@ class Solution:
 
         return helper(0, len(nums) - 1)
 
+class Solution:
+    def __init__(self, w):
+        # self.pre_sum = [w[0]]
+        # for _w in w[1:]:
+        #     self.pre_sum.append(self.pre_sum[-1]+_w)
+        self.pre_sum = list(accumulate(w))
+        self.total = sum(w)
+
+    def selectindex(self):
+        x = random.randint(1, self.total)
+        # left, right = 0, len(self.pre_sum)-1
+        # while left + 1 < right:
+        #     mid = (left + right) // 2
+        #     if x >= self.preSum[mid]:
+        #         left = mid
+        #     else:
+        #         right = mid
+        # if x < self.preSum[left]:
+        #     return left
+        # return right
+        return bisect_left(self.pre_sum, x)
+
+class Solution:
+    # 蓄水池抽样算法:蓄水池抽样算法用于从一个数据流中随机选择k个元素，且保证每个元素被选择的概率相等;
+    def reservoir_sampling(self, stream, k):
+        reservoir = []
+        n = 0
+        for item in stream:
+            n += 1
+            if len(reservoir)<k:
+                reservoir.append(item)
+            else:
+                s = random.randint(0, n-1)
+                if s<k:
+                    reservoir[s] = item
+        return reservoir
+
+class Solution:
+    def generateMatrix(self, n: int) -> List[List[int]]:
+        self.ans = [ [0]*n for _ in range(n) ]
+        left, right, top, buttom = 0, n-1, 0, n-1
+        i = 1
+        while i <= (n*n):
+            if left>right:break
+            for _ in range(left, right+1):
+                self.ans[top][_] = i
+                i += 1
+            top += 1
+            if top>buttom:break
+            for _ in range(top, buttom+1):
+                self.ans[_][right] = i
+                i += 1
+            right -= 1
+            if right<left:break
+            for _ in range(right, left-1, -1):
+                self.ans[buttom][_] = i
+                i += 1
+            buttom -= 1
+            if buttom<top:break
+            for _ in range(buttom, top-1, -1):
+                self.ans[_][left] = i
+                i += 1
+            left += 1
+
+        return self.ans
+
+class Solution:
+    # 单词切分
+    def wordBreak(self, s: str, wordDict: List[str]) -> bool:
+        n = len(s)
+        dp = [False] * (n+1)
+        dp[0] = True
+
+        for i in range(n):
+            for j in range(i+1, n+1):
+                if dp[i] and (s[i:j] in wordDict):
+                    dp[j] = True
+
+        return dp[-1] 
+
+class Solution:
+    # 旋转数组最小值
+    def minArray(self, nums):
+        left, right = 0, len(nums)-1
+        while left<right:
+            mid = (left+right)//2
+            if nums[mid]>nums[right]:
+                left = mid+1
+            elif nums[mid]<nums[left]:
+                right = mid
+            else:
+                right -= 1
+        return nums[left]
+
+class Solution:
+    # 组合总和II
+    def combinationSum2(self, candidates, target):
+        def dfs(begin, path, residue):
+            if residue == 0:
+                res.append(path[:])
+                return
+
+            for i in range(begin, size):
+                if candidates[i] > residue: # 剪枝
+                    break
+                if i>begin and candidates[i]==candidates[i]:
+                    continue
+                path.append(candidates[i])
+                dfs(i+1, path, residue-candidates[i])
+                path.pop()
+
+        size = len(candidates)
+        if size==0:
+            return []
+        candidates.sort()
+        res, path = [], []
+        dfs(0, path, target)
+        return res
