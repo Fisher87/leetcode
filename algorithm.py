@@ -321,6 +321,7 @@ class FindMedianSortedArrays:
     def get_k(self, nums1, nums2, k):
         index1, index2 = 0, 0
         while True:
+            # 结束分三种情况：1. nums1已经匹配结束; 2. nums2已经匹配结束; 3. k已经结束;
             if index1==len(nums1):
                 return nums2[index2+k-1]
             if index2==len(nums2):
@@ -1055,7 +1056,7 @@ class MaximalSquare:
             if matrix[i][0] == "1":
                 dp[i][0] = 1
         for j in range(n):
-            if matrix[0][j] == "1"
+            if matrix[0][j] == "1":
                 dp[0][j] = 1
 
         for i in range(1, m):
@@ -1341,8 +1342,8 @@ class PathSum:
             prefixSum_count[cur_sum] -= 1   # 退出递归是要-1
             return cnt
 
-       cnt = dfs(root, 0)
-       return cnt
+        cnt = dfs(root, 0)
+        return cnt
 
 class NthUglyNumber:
     def nthUglyNumber(self, n):
@@ -1391,7 +1392,7 @@ class MaxPathSum:
             _sum = left + right + root.val
             if _sum > self.max:
                 self.max = _sum
-            _max = = max(left, right)
+            _max == max(left, right)
             if _max+root.val<0:
                 return 0
             else:
@@ -1414,6 +1415,9 @@ class MajorityElement:
             else:
                 cnt -= 1
         return cur
+    def majority_element(self, nums):
+        nums.sort()
+        return nums[len(nums)//2]
 
 class DetectCycle:
     # 环形链表 II
@@ -2574,7 +2578,7 @@ class detectCycle:
             if not(fast and fast.next): return
             slow, fast = slow.next, fast.next.next
             if slow==fast:
-                return break
+                break
         fast=head
         while fast!=slow:
             fast, slow = fast.next, slow.next
@@ -3935,8 +3939,9 @@ class Solution:
             for i in range(begin, size):
                 if candidates[i] > residue: # 剪枝
                     break
-                if i>begin and candidates[i]==candidates[i]:
+                if i>begin and candidates[i-1] == candidates[i]:
                     continue
+
                 path.append(candidates[i])
                 dfs(i+1, path, residue-candidates[i])
                 path.pop()
@@ -3948,3 +3953,73 @@ class Solution:
         res, path = [], []
         dfs(0, path, target)
         return res
+
+class Solution:
+    # 字符串数字 删除k个数后最小
+    def removeKdigits(self, num: str, k: int) -> str:
+        numStack = []
+        
+        # 构建单调递增的数字串
+        for digit in num:
+            while k and numStack and numStack[-1] > digit:
+                numStack.pop()
+                k -= 1
+        
+            numStack.append(digit)
+        
+        # 如果 K > 0，删除末尾的 K 个字符
+        finalStack = numStack[:-k] if k else numStack
+        
+        # 抹去前导零
+        return "".join(finalStack).lstrip('0') or "0"
+
+class Find132pattern:
+    # 132模式
+    def find132pattern(self, nums: List[int]) -> bool:
+        stack = []
+        k = -(10 ** 9 + 7)
+        for i in range(len(nums) - 1,-1,-1):
+            # 存在 nums[i]<k，而 k 的存在必定是满足有j，是的 nums[j]>k的；
+            if nums[i] < k:
+                return True
+            while stack and stack[-1] < nums[i]:
+                # 在不满足单调递减时 k 才有值，也就是说在 k 有值的情况下，肯定满足存在j 且 nums[j] > k;
+                k = max(k,stack.pop())
+            stack.append(nums[i])
+        return False
+
+class Solution:
+    # 山脉数组中查找
+    def findInMountainArray(self, target, mountain_array):
+        l, r = 0, len(mountain_array)-1
+        while l<=r:
+            mid = (l+r)//2
+            if mountain_array[mid] < mountain_array[mid+1]:
+                l = mid+1
+            else:
+                r = mid
+
+        peak = l
+        index = self.binary_search(target, mountain_array, 0, peak)
+        if index != -1:
+            return index
+        return self.binary_search(target, mountain_array, peak, len(mountain_array)-1, False)
+
+    def binary_search(self, target, array, left, right, ascend=True):
+        l, r = left, right
+        while l<=r:
+            mid = (l+r)//2
+            if array[mid] == target:
+                return mid
+            if array[mid]>target:
+                if ascend:
+                    r = mid-1
+                else:
+                    l = mid+1
+            else:
+                if ascend:
+                    l = mid+1
+                else:
+                    r = mid-1
+
+        return -1
