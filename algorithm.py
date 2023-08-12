@@ -4023,3 +4023,102 @@ class Solution:
                     r = mid-1
 
         return -1
+
+class Solution:
+    # 字符片段切割
+    def partionLabels(self, s):
+        last = [0]*26
+        for i,c in enumerate(s):
+            last[ord(c)-ord('a')] = i
+
+        start, end = 0, 0
+        partion = []
+        for i,c in enumerate(s):
+            end = max(end, last[ord(c)-ord('a')])
+            if i==end:
+                partion.append(end-start+1)
+                start = end+1
+        return partion
+
+class Solution:
+    # 判断是否是顺子
+    def isStraight(self, nums):
+        joker = 0
+        nums.sort()
+        for i in range(4):
+            if nums[i]==0:
+                joker += 1
+            elif nums[i]==nums[i+1]:
+                return False
+        return nums[4]-nums[joker] < 5
+
+class nextGreaterElements:
+    # 循环数组下一个更大的数
+    def nextGreaterElements(self, nums):
+        n = len(nums)
+        ret = [-1] * n
+        stk = list()
+
+        for i in range(n * 2 - 1):
+            while stk and nums[stk[-1]] < nums[i % n]:
+                ret[stk.pop()] = nums[i % n]
+            stk.append(i % n)
+
+        return ret
+
+class MoveZeros:
+    # 移动0值到最后 in-places
+    def moveZeros(self, nums):
+        left, right = 0, 0
+        while right<len(nums):
+            if nums[right]!=0:
+                nums[left], nums[right] = nums[right], nums[left]
+                left += 1
+            right += 1
+
+class Solution:
+    # 丑数
+    def nthUglyNumber(self, n: int) -> int:
+        dp = [0]*(n+1)
+        dp[0] = 1
+        dp[1] = 1
+        p2, p3, p5 = 1, 1, 1
+
+        for i in range(2, n+1):
+            dp[i] = min(2*dp[p2], 3*dp[p3], 5*dp[p5])
+
+            # 这里都要更新
+            if 2*dp[p2] == dp[i]:
+                p2 += 1
+            if 3*dp[p3] == dp[i]:
+                p3 += 1
+            if 5*dp[p5] == dp[i]:
+                p5 += 1
+
+        return dp[n]
+
+class Solution:
+    # 字符串解码
+    def decodeString(self, s: str) -> str:
+        stack = []
+        
+        for c in s:
+            if c == ']':
+                tmp = ''
+                while stack:
+                    _c = stack.pop()
+                    if _c=='[':
+                        break
+                    else:
+                        tmp = _c + tmp
+                n = ''
+                while stack and stack[-1].isdigit():
+                    _n = stack.pop()
+                    n = _n + n
+                n = int(n)
+                stack.append(tmp * n)
+            else:
+                stack.append(c)
+        
+        return ''.join(stack)
+
