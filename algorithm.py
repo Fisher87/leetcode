@@ -1975,6 +1975,23 @@ class LongestIncreasingPath:
                 ans = max(ans, dfs(i,j))
         return ans
 
+    def longestIncreasingPath(self, matrix):
+        @lru_cache
+        def dfs(i, j):
+            largest_length = 1
+            for (dx, dy) in self.dirs:
+                _i, _j = i+dx, j+dy
+                if (_i>=0 and _i<m and _j>=0 and _j<n) and \
+                   matrix[_i][_j] > matrix[i][j]:
+                    largest_length = max(largest_lenght, dfs(_i, _j)+1)
+            return largest_length
+        m, n = len(matrix), len(matrix[0])
+        ans = 0
+        for i in range(m):
+            for j in range(n):
+                ans = max(ans, dfs(i, j))
+        return ans
+
 class MinEatingSpeed:
     # 爱吃香蕉的小猴
     def minEatingSpeed(self, piles, h):
@@ -4122,3 +4139,164 @@ class Solution:
         
         return ''.join(stack)
 
+class simplifyPath:
+    # 简化路径字符串
+    def simplifyPath(self, path):
+        stack = []
+        items = path.split('/')
+        for item in items:
+            if not item:
+                continue
+            if not stack and item=="..":
+                continue
+            elif item==".":
+                continue
+            elif item=="..":
+                stack.pop()
+            else:
+                stack.append(item)
+
+        return "/" + '/'.join(stack)
+
+class Partition:
+    # 分隔链表
+    def partition(self, head, x):
+        smalldummynode = ListNode(-1)
+        largedummynode = ListNode(-1)
+        small, large = smalldummynode, largedummynode
+        while head is not None:
+            if head.val>=x:
+                large.next = head
+                large = large.next
+            else:
+                small.next = head
+                small = small.next
+            head = head.next
+
+        large.next = None
+        small.next = largedummynode.next
+        return smalldummynode.next
+
+class FourSum:
+    # 四数之和
+    def fourSum(self, nums: List[int], target: int) -> List[List[int]]:
+        quadruplets = list()
+        if not nums or len(nums) < 4:
+            return quadruplets
+        
+        nums.sort()
+        length = len(nums)
+        for i in range(length - 3):
+            if i > 0 and nums[i] == nums[i - 1]:
+                continue
+            if nums[i] + nums[i + 1] + nums[i + 2] + nums[i + 3] > target:
+                break
+            if nums[i] + nums[length - 3] + nums[length - 2] + nums[length - 1] < target:
+                continue
+            for j in range(i + 1, length - 2):
+                if j > i + 1 and nums[j] == nums[j - 1]:
+                    continue
+                if nums[i] + nums[j] + nums[j + 1] + nums[j + 2] > target:
+                    break
+                if nums[i] + nums[j] + nums[length - 2] + nums[length - 1] < target:
+                    continue
+                left, right = j + 1, length - 1
+                while left < right:
+                    total = nums[i] + nums[j] + nums[left] + nums[right]
+                    if total == target:
+                        quadruplets.append([nums[i], nums[j], nums[left], nums[right]])
+                        while left < right and nums[left] == nums[left + 1]:
+                            left += 1
+                        left += 1
+                        while left < right and nums[right] == nums[right - 1]:
+                            right -= 1
+                        right -= 1
+                    elif total < target:
+                        left += 1
+                    else:
+                        right -= 1
+        
+        return quadruplets
+
+class MirrorTree:
+    def mirrorTree(self, root):
+        if not root:
+            return None
+        root.left, root.right = root.right, root.left
+        self.mirrorTree(root.left)
+        self.mirrorTree(root.right)
+        return root
+
+class MyStack:
+
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.queue = collections.deque()
+
+
+    def push(self, x: int) -> None:
+        """
+        Push element x onto stack.
+        """
+        n = len(self.queue)
+        self.queue.append(x)
+        for _ in range(n):
+            self.queue.append(self.queue.popleft())
+
+
+    def pop(self) -> int:
+        """
+        Removes the element on top of the stack and returns that element.
+        """
+        return self.queue.popleft()
+
+
+    def top(self) -> int:
+        """
+        Get the top element.
+        """
+        return self.queue[0]
+
+
+    def empty(self) -> bool:
+        """
+        Returns whether the stack is empty.
+        """
+        return not self.queue
+
+class Solution:
+    # 回文子串个数
+    def countSubstrings(self, s):
+        n = len(s)
+        ans = 0
+        for i in range(2*n-1):
+            # fuck coding: 
+            l, r = i//2, i//2+i%2
+            while (l>=0 and r<n and s[l]==s[r]):
+                l -= 1
+                r += 1
+                ans += 1
+
+        return ans
+
+class SearchRange:
+    def searchRange(self, nums, target):
+        def binary_search(nums, target):
+            l, r = 0, len(nums)-1
+            while l<=r:
+                mid = l+(r-l)//2
+                if nums[mid] >= target:
+                    r = mid-1
+                else:
+                    l = mid+1
+            return l
+        # left = bisect_left(nums, target)
+        # right = bisect_left(nums, target+1)-1
+        left = binary_search(nums, target)
+        right= binary_search(nums, target+1)-1
+        if left==len(nums) or nums[left]!=target:
+            return [-1, -1]
+        else:
+            return [left, right]

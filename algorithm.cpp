@@ -100,3 +100,197 @@ public:
         return stk;
     }
 };
+
+class SimplifyPath{
+public:
+    string simplifyPath(string path) {
+        auto split = [](const string& s, char delim) -> vector<string> {
+            vector<string> ans;
+            string cur;
+            for (char ch: s) {
+                if (ch == delim) {
+                    ans.push_back(move(cur));
+                    cur.clear();
+                }
+                else {
+                    cur += ch;
+                }
+            }
+            ans.push_back(move(cur));
+            return ans;
+        };
+
+        vector<string> names = split(path, '/');
+        vector<string> stack;
+        for (string& name: names) {
+            if (name == "..") {
+                if (!stack.empty()) {
+                    stack.pop_back();
+                }
+            }
+            else if (!name.empty() && name != ".") {
+                stack.push_back(move(name));
+            }
+        }
+        string ans;
+        if (stack.empty()) {
+            ans = "/";
+        }
+        else {
+            for (string& name: stack) {
+                ans += "/" + move(name);
+            }
+        }
+        return ans;
+    }
+};
+
+class Partition{
+public:
+    ListNode* partition(ListNode* head, int x) {
+        ListNode* small = new ListNode(0);
+        ListNode* smallHead = small;
+        ListNode* large = new ListNode(0);
+        ListNode* largeHead = large;
+        while head!=nullptr {
+            if (head->val < x) {
+                small->next = head->next;
+                small = small->next;
+            } else {
+                large->next = head->next;
+                large = large->next;
+            }
+            head = head->next;
+        }
+        large->next = nullptr;
+        small->next = largeHead->next;
+
+        return smallHead->next;
+    }
+};
+
+class LongestPath{
+public:
+    static constexpr int dirs[4][2] = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    int rows, columns;
+
+    int longestIncreasingPath(vector< vector<int> > &matrix) {
+        if (matrix.size() == 0 || matrix[0].size() == 0) {
+            return 0;
+        }
+        rows = matrix.size();
+        columns = matrix[0].size();
+        auto memo = vector< vector<int> > (rows, vector <int> (columns));
+        int ans = 0;
+        for (int i = 0; i < rows; ++i) {
+            for (int j = 0; j < columns; ++j) {
+                ans = max(ans, dfs(matrix, i, j, memo));
+            }
+        }
+        return ans;
+    }
+
+    int dfs(vector< vector<int> > &matrix, int row, int column, vector< vector<int> > &memo) {
+        if (memo[row][column] != 0) {
+            return memo[row][column];
+        }
+        ++memo[row][column];
+        for (int i = 0; i < 4; ++i) {
+            int newRow = row + dirs[i][0], newColumn = column + dirs[i][1];
+            if (newRow >= 0 && newRow < rows && newColumn >= 0 && newColumn < columns && matrix[newRow][newColumn] > matrix[row][column]) {
+                memo[row][column] = max(memo[row][column], dfs(matrix, newRow, newColumn, memo) + 1);
+            }
+        }
+        return memo[row][column];
+    }
+};
+
+class FourSum {
+public:
+    vector< vector<int> > fourSum(vector<int>& nums, int target){
+        vector<vector<int>> quadruplets;
+        if (nums.size()<4){
+            return quadruplets;
+        }
+
+        sort(nums.begin(), nums.end());
+        int length = nums.size();
+        for (int i=0; i<length-3; ++i) {
+            while (i>0 && nums[i]==nums[i-1]) {
+                continue;
+            }
+            if((long) nums[i]+nums[i+1]+nums[i+2]+nums[i+3]>target) {
+                break;
+            }
+            if((long) nums[i]+nums[length-3]+nums[length-2]+nums[length-1]<target) {
+                continue;
+            }
+
+            for (int j=i+1; j<length-2; ++j) {
+                while (j>i+1 && nums[j]==nums[j-1]) {
+                    continue;
+                }
+                if((long) nums[i]+nums[j]+nums[j+1]+nums[j+2] > target) {
+                    break;
+                }
+                if((long) nums[i]+nums[j]+nums[length-2]+nums[length-1] < target) {
+                    continue;
+                }
+                int left = j+1, right = length-1;
+                while (left<right) {
+                    long sum = (long) nums[i]+nums[j]+nums[left]+nums[right];
+                    if (sum==target) {
+                        quadruplets.push_back({nums[i], nums[j], nums[left], nums[right]});
+                        while (left<right && nums[left]==nums[left+1]) {
+                            left ++;
+                        }
+                        left ++;
+                        while(left<right && nums[right]==nums[right-1]){
+                            right--;
+                        }
+                        right--;
+                    } else if (sum < target) {
+                        left++;
+                    } else {
+                        right--;
+                    }
+                }
+
+            }
+
+        }
+
+    }
+
+};
+
+class MyStack {
+public:
+    queue<int> q;
+    MyStack(){}
+
+    void push(int x) {
+        int n = q.size();
+        q.push(x);
+        for (int i=0; i<n; i++) {
+            q.push(q.front());
+            q.pop();
+        }
+    }
+
+    int pop() {
+        int r = q.front();
+        q.pop();
+        return r;
+    }
+
+    int top(){
+        int r = q.front();
+        return r;
+    }
+
+    bool empty(){
+        return q.empty();
+    }
+
+};
