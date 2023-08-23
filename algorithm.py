@@ -1705,6 +1705,26 @@ class BuildTree:
 
         return build(0, n-1, 0, n-1)
 
+    # 由中序和后序遍历构造树
+    def buildTree(self, inorder, postorder):
+        def build(in_left, in_right):
+            if in_left>in_right:
+                return None
+
+            val = postorder.pop()
+            root= TreeNode(val)
+            
+            index = inx_map(val)
+
+            # 右子树, 要先构建右子树(因为postorder pop顺序)
+            root.right = build(index+1, in_right)
+            # 左子树
+            root.left = build(in_left, index-1)
+            return root
+
+        inx_map = {val:idx for idx,val in enumerate(inorder)}
+        return build(0, len(inorder)-1)
+
 class ReverseBetween:
     # 中间反转链表
     def reverseBetween(self, head, left, right):
@@ -4300,3 +4320,153 @@ class SearchRange:
             return [-1, -1]
         else:
             return [left, right]
+
+class Solution:
+    def superEggDrop(self, k: int, n: int) -> int:
+        memo = {}
+        def dp(k, n):
+            if (k, n) not in memo:
+                if n == 0:
+                    ans = 0
+                elif k == 1:
+                    ans = n
+                else:
+                    lo, hi = 1, n
+                    # keep a gap of 2 x values to manually check later
+                    while lo + 1 < hi:
+                        x = (lo + hi) // 2
+                        t1 = dp(k - 1, x - 1)
+                        t2 = dp(k, n - x)
+
+                        if t1 < t2:
+                            lo = x
+                        elif t1 > t2:
+                            hi = x
+                        else:
+                            lo = hi = x
+
+                    ans = 1 + min(max(dp(k - 1, x - 1), dp(k, n - x))
+                                  for x in (lo, hi))
+
+                memo[k, n] = ans
+            return memo[k, n]
+
+        return dp(k, n)
+
+class ReorganizeString:
+    from collections import Counter
+    def reorganizeString(self, s):
+        if len(s)<2:
+            return s
+        n = len(s)
+        counters = Counter(s)
+        if counters.most_common(1)[0][-1] > (n+1)//2:
+            return ''
+
+        queue = [(-x[1], x[0]) for x in counts.items()]
+        heapq.heapify(queue)
+        ans = list()
+
+        while len(queue)>1:
+            _, letter1 = heapq.heappop(queue)
+            _, letter2 = heapq.heappop(queue)
+            ans.extend([letter1, letter2])
+            counts[letter1] -= 1
+            counts[letter2] -= 1
+            if counts[letter1] > 0:
+                heapq.heappush(queue, (-counts[letter1], letter1))
+            if counts[letter2] > 0:
+                heapq.heappush(queue, (-counts[letter2], letter2))
+
+        if queue:
+            ans.append(queue[0][1])
+
+        return "".join(ans)
+
+class Solution:
+    def closedIsland(self, grid: List[List[int]]) -> int:
+        m, n = len(grid), len(grid[0])
+        ans = 0
+
+        def dfs(x: int, y: int) -> bool:
+            if x < 0 or y < 0 or x >= m or y >= n:
+                return False
+            if grid[x][y] != 0:
+                return True
+            
+            grid[x][y] = -1
+            ret1, ret2, ret3, ret4 = dfs(x - 1, y), dfs(x + 1, y), dfs(x, y - 1), dfs(x, y + 1)
+            return ret1 and ret2 and ret3 and ret4
+            # return dfs(x-1, y) and dfs(x+1, y) and dfs(x, y-1) and dfs(x, y+1) # 这种写法有问题
+        
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == 0 and dfs(i, j):
+                    ans += 1
+        
+        return ans
+
+class topKFrequent:
+    # 最高频的k个数字
+    def topKFrequent(self, nums, k):
+        cnt = {}
+        for num in nums:
+            cnt[num] = cnt.get(num, 0)+1
+
+        candidates = list()
+        for u,v in cnt.items():
+            heapq.heappush(candidates, (v, u))
+            while len(candidates)>k:
+                heapq.heappop(candidates)
+
+        ans = [_[1] for _ in candidates]
+        return ans
+
+class NumWays:
+    # 青蛙跳台阶
+    def numWays(self, n):
+        if n==0:
+            return 1
+        if n==1:
+            return 1
+        # f(n) = f(n-1) + f(n-2)
+        a, b, c = 1, 1, 0
+        for i in range(2, n+1):
+            c = a+b
+            a, b = b, c
+        return c
+
+class MinNumber:
+    # 把数组排成最小数
+    def minNumber(self, nums):
+        def sort_rule(x, y):
+            a, b = x+y, y+x
+            if a>b:
+                return 1
+            elif a<b:
+                return -1
+            else:
+                return 0
+        strs = [str(num) for num in nums]
+        strs.sort(key=functools.cmp_to_key(sort_rule))
+        return ''.join(strs)
+
+    def minNumber(self, nums: List[int]) -> str:
+        def quick_sort(l , r):
+            if l >= r: return
+            i, j = l, r
+            while i < j:
+                while strs[j] + strs[l] >= strs[l] + strs[j] and i < j:
+                    j -= 1
+                while strs[i] + strs[l] <= strs[l] + strs[i] and i < j: 
+                    i += 1
+                strs[i], strs[j] = strs[j], strs[i]
+
+            strs[i], strs[l] = strs[l], strs[i]
+            quick_sort(l, i - 1)
+            quick_sort(i + 1, r)
+        
+        strs = [str(num) for num in nums]
+        quick_sort(0, len(strs) - 1)
+        return ''.join(strs)
+
