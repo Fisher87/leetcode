@@ -4470,3 +4470,288 @@ class MinNumber:
         quick_sort(0, len(strs) - 1)
         return ''.join(strs)
 
+class RecoverTree:
+    # 恢复二叉搜索树
+    def recoverTree(self, root):
+        nodes = []
+        def dfs(root):
+            if not root:
+                return
+            dfs(root.left)
+            nodes.append(root)
+            dfs(root.right)
+        dfs(root)
+        x, y = None, None
+        pre = nodes[0]
+        for i in range(1, len(nodes)):
+            if pre.val > nodes[i].val:
+                y = nodes[i]
+                if not x:
+                    x = pre
+            pre = nodes[i]
+        if x and y:
+            x.val, y.val = y.val, x.val
+
+    def recoverTree(self, root):
+        self.x, self.y, self.pre = None, None, None
+        def dfs(root):
+            if not root:
+                return
+            dfs(root.left)
+
+            if self.pre and self.pre.val>root.val:
+                self.y = root
+                if not self.x:
+                    self.x = self.pre
+            self.pre = root
+
+            dfs(root.right)
+
+        dfs(root)
+        if self.x and self.y:
+            self.x.val,self.y.val = self.y.val,self.x.val
+
+class IsPalindrome:
+    def isPalindrome(self, s: str) -> bool:
+        sgood = "".join([c.lower() for c in s if c.isalnum()])
+        return sgood == sgood[::-1]
+
+class Exchange:
+    def exchange(self, nums):
+        i, j = 0, len(nums)-1
+        while i<j:
+            while i<j and nums[i]%2 == 1:
+                i += 1
+            while i<j and nums[j]%2 == 0:
+                j -= 1
+            nums[i], nums[j] = nums[j], nums[i]
+            i += 1
+            j -= 1
+        return nums
+
+class CheckSubarraySum:
+    def checkSubarraySum(self, nums, k):
+        n = len(nums)
+        if n<2:
+            return False
+        mp = {0:-1}
+        reminder = 0
+        for i in range(n):
+            reminder = (reminder+nums[i]) % k
+            if reminder in mp:
+                pre_inx = mp[reminder]
+                if i-pre_inx>=2:
+                    return True
+            else:
+                mp[reminder] = i
+        return False
+
+class lengthOfLongestSubstring:
+    # 最长不含重复字符的子串
+    def lengthOfLongestSubstring(self, s):
+        window = []
+        ret = 0
+        for c in s:
+            while c in set(w):
+                window.pop(0)
+            window.append(c)
+            ret = max(ret, len(window))
+        return ret
+
+    def lengthOfLongestSubstring(self, s: str) -> int:
+        dic = {}
+        res = tmp = 0
+        for j in range(len(s)):
+            i = dic.get(s[j], -1) # 获取索引 i
+            dic[s[j]] = j # 更新哈希表
+            tmp = tmp + 1 if tmp < j - i else j - i # dp[j - 1] -> dp[j]
+            res = max(res, tmp) # max(dp[j - 1], dp[j])
+        return res
+
+class findNumberIn2DArray:
+    def findNumberIn2DArray(self, matrix, target):
+        i, j = 0, len(matrix[0])-1
+        while i<len(matrix)-1 and j>=0:
+            if matrix[i][j] == target:
+                return True
+            if matrix[i][j]<target:
+                i += 1
+            else:
+                j -= 1
+        return False
+
+class Solution:
+    # 双栈排序
+    def stackSort(self, stk):
+        tmp = []
+        while stk:
+            peak = stk.pop()
+            while tmp and tmp[-1] > peak:
+                t = tmp.pop()
+                stk.append(t)
+            tmp.append(peak)
+        return tmp
+
+class Trie:
+    def __init__(self):
+        self.children = [None]*26
+        self.isEnd = False
+
+    def insert(self, word):
+        node = self
+        for w in word:
+            w = ord(w)-ord("a")
+            if not node.children[w]:
+                node.children[w] = Trie()
+            node = node.children[w]
+        node.isEnd = True
+
+    def search_prefix(self, prefix):
+        node = self
+        for w in prefix:
+            w = ord(w) - ord("a")
+            if not node.children[w]:
+                return None
+            node = node.children[w]
+        return node
+
+    def search(self, word):
+        node = self.search_prefix(word)
+        return node is not None and node.isEnd
+        
+    def start_with(self, word):
+        node = self.search_prefix(word)
+        return node is not None
+
+class IsMatch:
+    # 正则表达式匹配
+    def isMatch(self, s, p):
+        m, n = len(s), len(p)
+        dp = [ [False]*(n+1) for _ in range(m+1) ]
+
+        dp[0][0] = True
+        for i in range(m+1):
+            for j in range(1, n+1):
+                if p[j-1] != "*":
+                    if (i>=1 and (p[j-1]==s[i-1] or p[j-1]==".")):
+                        dp[i][j] = dp[i-1][j-1]
+                else:
+                    if j>=2:
+                        dp[i][j] |= dp[i][j-2]
+                    if (i>=1 and j>=2 and (s[i-1]==p[j-2] or p[j-2]=='.')):
+                        dp[i][j] |= dp[i-1][j]
+
+        return dp[m][n]
+
+    def isMatch_v2(self, s: str, p: str) -> bool:
+        m, n = len(s), len(p)
+
+        def matches(i, j) -> bool:
+            if i == 0:
+                return False
+            if p[j - 1] == '.':
+                return True
+            return s[i - 1] == p[j - 1]
+
+        f = [[False] * (n + 1) for _ in range(m + 1)]
+        f[0][0] = True
+        for i in range(m + 1):
+            for j in range(1, n + 1):
+                if p[j - 1] == '*':
+                    f[i][j] |= f[i][j - 2]
+                    if matches(i, j - 1):
+                        f[i][j] |= f[i - 1][j]
+                else:
+                    if matches(i, j):
+                        f[i][j] |= f[i - 1][j - 1]
+        return f[m][n]
+
+class FreqStack:
+    def __init__(self):
+        self.freq = defaultdict(int)
+        self.group= defaultdict(list)
+        self.max_freq = 0
+    
+    def push(self, val):
+        self.freq[val] += 1
+        cnt = self.freq[val]
+        self.group[cnt].append(val)
+        self.max_freq = self.max_freq if self.max_freq>cnt else cnt
+
+    def pop(self):
+        val = self.group[self.max_freq].pop()
+        self.freq[val] -= 1
+        if len(self.group[self.max_freq])<=0:
+            self.max_freq -= 1
+
+        return val
+
+class RandomPick:
+    def __init__(self, nums):
+        self.num_inx = defaultdict(list)
+        for i,num in enumerate(nums):
+            self.[num].append(i)
+
+    def pick(self, num):
+        return random.choice(self.num_inx[num])
+
+    # 如果nums 以文件的方式存储，文件大小远远大于内存大小，则上面的方法无法使用;
+    def __init__(self, nums):
+        self.nums = nums
+    
+    def pick(self, num):
+        ans = cnt = 0
+        for i,num in enumerate(self.nums):
+            if num==target:
+                cnt += 1  # 第cnt 次遇到target
+                if randrange(cnt) == 0:
+                    ans = i
+
+        return ans
+
+class Jump:
+    def jump(self, nums):
+        # 贪心算法
+        n = len(nums)
+        max_pos, end, step = 0, 0, 0
+        for i in range(n-1):
+            if max_pos >= i:
+                max_pos = max(max_pos, i+nums[i])
+                if ==end:  # 当 i 到达 end 时, 表示需要跳跃
+                    end = max_pos
+                    step += 1
+
+        return step
+
+    def jump(self,nums):
+        # 贪心算法
+        n = len(nums)
+        if n==1:
+            return 0
+        steps, cur_dis, next_dis = 0, 0, 0
+        for i in range(n):
+            next_dis = max(next_dis, i+nums[i])
+            if i == cur_dis:
+                cur_dis = next_dis
+                steps += 1
+                if next_dis >= (n-1):
+                    break
+        return steps
+
+    def jump_v2(self, nums):
+        # 动态规划
+        n = len(nums)
+        if n == 1:
+            return 0;
+
+        dp = [ 1e5 ] * n
+        dp[n-1] = 0
+        for i in range(n-2, -1, -1):
+            jump_largest = i+nums[i]
+            if jump_largest >= n:
+                dp[i] = 1
+                continue
+            for j in range(i+1, jump_largest):
+                dp[i] = min(dp[i], dp[j])
+            dp[i] += 1
+        return dp[0]
