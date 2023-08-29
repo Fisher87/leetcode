@@ -26,17 +26,19 @@ class MaxProfit:
         return max(dp[n-1][1], dp[n-1][2])
 
 class canPartition:
+    # 分割等和子集
     def canpartition(self, nums):
         if len(nums)<2:
             return False
         sums = sum(nums)
         if sums&1:
             return False
-        # nums.sort()
+        nums.sort()
 
         target = sums // 2
         if nums[-1] > target:
             return False
+
         n = len(nums)
         # 转化为判断从nums中选取数字组合，和为target 是否存在;
         dp = [[False]*(target+1) for _ in range(n)]
@@ -2079,7 +2081,7 @@ class NextPermutation:
         return nums
 
 class CanPartitionKSubsets:
-    # 划分为k个相等的子集
+    # 划分为k个相等的子集, <使用回溯>
     def canPartitionKSubsets(self, nums, k):
         def dfs(i):
             if i == len(nums):
@@ -4717,7 +4719,7 @@ class Jump:
         for i in range(n-1):
             if max_pos >= i:
                 max_pos = max(max_pos, i+nums[i])
-                if ==end:  # 当 i 到达 end 时, 表示需要跳跃
+                if i==end:  # 当 i 到达 end 时, 表示需要跳跃
                     end = max_pos
                     step += 1
 
@@ -4755,3 +4757,32 @@ class Jump:
                 dp[i] = min(dp[i], dp[j])
             dp[i] += 1
         return dp[0]
+
+class Canpartition:
+    def canpartition(self, nums):
+        size = len(nums)
+        if size<=1:
+            return False
+        num_sum = sum(nums)
+        if num_sum & 1:
+            return False
+        nums.sort()
+
+        target = num_sum // 2
+        if nums[-1] > target:
+            return False
+
+        dp = [ [False]*(target+1) for _ in range(size) ]
+        for i in range(size):
+            dp[i][0] = True
+        dp[0][nums[0]] = True
+        for i in range(1, n):
+            num = nums[i]
+            for j in range(1, target+1):
+                if j>=num:
+                    dp[i][j] = dp[i-1][j] | dp[i-1][j-num]
+                else:
+                    dp[i][j] = dp[i-1][j]
+
+        return dp[size-1][target]
+
