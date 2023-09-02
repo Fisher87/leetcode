@@ -4786,3 +4786,204 @@ class Canpartition:
 
         return dp[size-1][target]
 
+class MinimumTotal:
+    # 三角最短路径和
+    def minimumTotal(self, triangle):
+        n = len(triangle)
+        f = [ [0]*n for _ in range(n) ]
+        f[0][0] = triangle[0][0]
+
+        for i in range(1, n):
+            f[i][0] = f[i-1][0] + triangle[i][0]    # 第一个
+            for j in range(1, i):
+                f[i][j] = min(f[i-1][j-1], f[i-1][j]) + triangle[i][j]
+            f[i][i] = f[i-1][i-1] + triangle[i][i]   # 最后一个
+                
+        return min(f[-1])
+
+    def minimumTotal(self, triangle):
+        memo = triangle[-1]
+        n = len(memo)
+        for i in range(n-2, -1, -1):
+            for j in range(i+1):
+                memo[j] = triangle[i][j] + min(memo[j], memo[j+1])
+        return memo[0]
+
+class Solution:
+    # 链表插入排序
+    def insertionSortList(self, head: ListNode) -> ListNode:
+        if not head:
+            return head
+        
+        dummyHead = ListNode(0)
+        dummyHead.next = head
+        lastSorted = head
+        curr = head.next
+
+        while curr:
+            if lastSorted.val <= curr.val:
+                lastSorted = lastSorted.next
+            else:
+                prev = dummyHead
+                while prev.next.val <= curr.val:
+                    prev = prev.next
+                lastSorted.next = curr.next
+                curr.next = prev.next
+                prev.next = curr
+            curr = lastSorted.next
+        
+        return dummyHead.next
+
+class Solution:
+    # 判断是否二分图
+    def isBipartite(self, graph:List[List[int]]) -> bool:
+        # 广度优先
+        n = len(graph)
+        uncolor, red, green = 0, 1, 2
+        color = [ uncolor ] * n
+
+        for i in range(len(n)):
+            if color[i]==uncolor:
+                q = collections.deque([i])
+                color[i] = red
+                while q:
+                    node = q.popleft()
+                    neighbor_color = green if color[node]==red else red
+                    for neighbor in graph[node]:
+                        if color[neighbor]==uncolor:
+                            q.append(neighbor)
+                            color[neighbor]=neighbor_color
+                        elif color[neighbor]==neighbor_color:
+                            continue
+                        else:
+                            return False
+
+        return True
+
+    def isBipartite(self, graph):
+        # 深度优先
+        n = len(graph)
+        uncolor, red, green = 0, 1, 2
+        color = [uncolor] * n
+        valid = True
+
+        def dfs(node, c):
+            nonlocal valid
+            color[node] = c
+            neighbor_color= green if c==red else red
+            for neighbor in graph[node]:
+                if color[neighbor] == uncolor:
+                    dfs(neighbor, neighbor_color)
+                    if not valid:
+                        return
+                elif color[neighbor]!=neighbor_color:
+                    valid = False
+                    return
+
+        for i in range(n):
+            if color[i]==uncolor:
+                dfs(i, red)
+                if not valid:
+                    break
+        return valid
+
+class FindMedian:
+    def __init__(self):
+        self.min_queue = list()
+        self.max_queue = list()
+
+    def addNum(self, num):
+        min_queue = self.min_queue
+        max_queue = self.max_queue
+        
+        if not min_queue or num <= -min_queue[0]:
+            heapq.heappush(min_queue, -num)
+            if len(max_queue+1) < len(min_queue):
+                heapq.heappush(max_queue, -heapq.heappop(min_queue))
+        else:
+            heapq.heappush(max_queue, num)
+            if len(max_queue) > len(min_queue):
+                heapq.heappush(min_queue, -heapq.heappop(max_queue))
+
+    def findMedian(self):
+        min_queue = self.min_queue
+        max_queue = self.max_queue
+
+        if len(min_queue) > len(max_queue):
+            return -min_queue[0]
+        else:
+            return (-min_queue[0] + max_queue[0]) * 0.5
+
+class sumOfLeftLeaves:
+    # 左叶子节点和
+    def sumOfLeftLeaves(self, root):
+        self.ans = 0
+        def dfs(root, isleft):
+            if not root:
+                return
+            if not root.left and not root.right and is_left:
+                self.ans += root.val
+                return 
+            dfs(root.left, True)
+            dfs(root.right, False)
+        dfs(root, False)
+
+        return self.ans
+
+class Solution:
+    def largestRectangleArea(self, heights):
+        n = len(heights)
+        stack = []
+        right_stack = []
+        for i in range(n-1, -1, -1):
+            while stack and heights[stack[-1]] >= heights[i]:
+                stack.pop()
+            if stack:
+                right_stack.append(stack[-1])
+            else:
+                right_stack.append(n)
+            stack.append(i)
+        right_stack = right_stack[::-1]
+
+        stack = []
+        left_stack = []
+        for i in range(n):
+            while stack and heights[stack[-1]] >= heights[i]:
+                stack.pop()
+            if stack:
+                left_stack.append(stack[-1])
+            else:
+                left_stack.append(-1)
+            stack.append(i)
+
+        max_area = 0
+        for i in range(n):
+            max_area = max(max_area, heights[i]*(right_stack[i]-left_stack[i]-1))
+        return max_area
+
+class LongestCommonPrefix:
+    def longestCommonPrefix(self, strs):
+        if not strs:
+            return ''
+        max_size = min([len(s) for s in strs])
+        ans = ''
+        for i in range(max_size):
+            cs = set([s[i] for s in strs])
+            if len(cs)>=2:
+                break
+            ans += cs.pop()
+
+        return ans
+
+class SubarrayDivByK:
+    # 和可被K整除的子数组, 前缀和 + 同余
+    def subarrayDivByK(self, nums):
+        record = {0:1}
+        total, ans = 0, 0
+        for num in nums:
+            total += num
+            modulus = total % k
+            same = record.get(modulus, 0)
+            ans += same
+            record[modulus] = same + 1
+        return ans
