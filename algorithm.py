@@ -4987,3 +4987,31 @@ class SubarrayDivByK:
             ans += same
             record[modulus] = same + 1
         return ans
+
+class SortArrayByPartity:
+    def sortArrayByPartity(self, nums):
+        n = len(nums)
+        j = 1
+        for i in range(0, n, 2):
+            if nums[i]%2 == 1:
+                while j<n-1 and nums[j]%2 == 1:
+                    j += 2
+                nums[i], nums[j] = nums[j], nums[i]
+
+        return nums
+
+class sortColors:
+    # 颜色排序
+    def sortcolors(self, nums):
+        n = len(nums)
+        p0, p2 = 0, n-1
+        i = 0
+        while i<=p2:
+            while i<=p2 and nums[i]==2:
+                nums[i], nums[p2] = nums[p2], nums[i]
+                p2 -= 1
+            if nums[i] == 0:
+                nums[i], nums[p0] = nums[p0], nums[i]
+                p0 += 1
+            i += 1
+
