@@ -2899,6 +2899,7 @@ class BiSearch:
         return False
 
 class GetPermutation:
+    # 获取所有排列组合
     def getPermutation(self, n, k):
         self.ans = []
 
@@ -5015,3 +5016,35 @@ class sortColors:
                 p0 += 1
             i += 1
 
+class HammingWeight:
+    # 位 1 的个数
+    def hammingWeight(self, n):
+        ret = 0
+        while n:
+            n &= n-1
+            ret += 1
+
+        return ret
+
+class MergetSort:
+    def mergeSort(self, nums):
+        def _sort(nums, l, r):
+            if l==r:
+                return nums[l]
+
+            mid = (l + r) // 2
+            _sort(nums, l, mid)
+            _sort(nums, mid+1, r)
+
+            tmp = []
+            i, j = l, mid+1
+            while i<=mid or j<=r:
+                if (i>mid or (j <= r and nums[j]<nums[i])):
+                    tmp.append(nums[j])
+                    j += 1
+                else:
+                    tmp.append(nums[i])
+                    i += 1
+            nums[l : r+1] = tmp
+        _sort(nums, 0, len(nums)-1)
+        return nums
