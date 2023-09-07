@@ -4627,7 +4627,7 @@ class Trie:
         return node is not None
 
 class IsMatch:
-    # 正则表达式匹配
+    # 正则表达式匹配 .*
     def isMatch(self, s, p):
         m, n = len(s), len(p)
         dp = [ [False]*(n+1) for _ in range(m+1) ]
@@ -4668,6 +4668,29 @@ class IsMatch:
                     if matches(i, j):
                         f[i][j] |= f[i - 1][j - 1]
         return f[m][n]
+
+class IsMatch:
+    # 正则表达式匹配 ?*
+    def isMatch(self, s, p):
+        m, n = len(s), len(p)
+
+        dp = [ [False]*(n+1) for _ in range(m+1)]
+        dp[0][0] = True
+        for i in range(1, n+1):
+            # 只有前面全是*时才会为True, 否则break
+            if p[i-1] == "*":
+                dp[0][i] = True
+            else:
+                break
+
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if p[j-1] == "*":
+                    dp[i][j] = dp[i][j-1] | dp[i-1][j]
+                elif p[j-1] == "?" or s[i-1]==p[j-1]:
+                    dp[i][j] = dp[i-1][j-1]
+
+        return dp[m][n]
 
 class FreqStack:
     def __init__(self):
@@ -5107,3 +5130,74 @@ class permuteUnique:
 
         return self.ans
 
+class FindRepeateNum:
+    # 查找重复数
+    def findRepeatenum(self, nums):
+        temp = set()
+        for num in nums:
+            if num in temp:
+                return num
+            temp.add(num)
+        return -1
+
+    def findRepeatenum(self, nums):
+        i, n = 0, len(nums)
+        while i<n:
+            if nums[i] == i:
+                i += 1
+                continue
+            if nums[nums[i]] == nums[i]:
+                return nums[i]
+            nums[nums[i]], nums[i] = nums[i], nums[nums[i]]
+
+        return -1
+
+class Reverse:
+    # 数字翻转 123 -> 321
+    def reverse(self, num):
+        INT_MIN, INT_MAX = -2**31, 2**31-1
+        rev = 0
+        while num != 0:
+            # INT_MIN 也是一个负数，不能写成 rev < INT_MIN // 10
+            if rev < INT_MIN // 10 + 1 or rev > INT_MAX // 10:
+                return 0
+            digit = num % 10
+            # Python3 的取模运算在 x 为负数时也会返回 [0, 9) 以内的结果，因此这里需要进行特殊判断
+            if num<0 and digit>0:
+                digit -= 10
+
+            # 同理，Python3 的整数除法在 x 为负数时会向下（更小的负数）取整，因此不能写成 x //= 10
+            num = (num-digit) // 10
+            rev = rev * 10 + digit
+        return rev
+
+
+class KthLargest:
+    def __init__(self, k, nums):
+        self.k = k
+        self.que = nums
+        heapq.heapify(self.que)
+
+    def add(self, val):
+        heapq.heappush(self.q, val)
+        while len(self.que) > self.k:
+            heapq.heappop(self.que)
+
+        rturn self.que[0]
+
+class Compress:
+    def compress(self, chars):
+        n = len(chars)
+        j, cnt = 0, 1
+        for i in range(n):
+            if i==n-1 or chars[i]!=chars[i+1]:
+                chars[j] = chars[i]
+                j += 1
+                if cnt > 1:
+                    for k in str(cnt):
+                        chars[j] = k
+                        j += 1
+                cnt = 1
+            else:
+                cnt += 1
+        return j
