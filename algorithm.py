@@ -5201,3 +5201,40 @@ class Compress:
             else:
                 cnt += 1
         return j
+
+class Solution:
+    # 至少有k个重复字符的最长子串
+    def longestSubstring(self, s, k):
+        def dfs(s, k):
+            cnt = [0]*26
+            for c in s:
+                cnt[ord(c)-ord('a')] += 1
+            split_char = ""
+            for i in range(26):
+                count = cnt[i]
+                if count>0 and count<k:
+                    split_char = chr(ord('a')+i)
+                    break
+            if split_char == "":
+                return len(s)
+            splits = s.split(split_char)
+            _max = 0
+            for split_s in splits:
+                length = dfs(split_s, k)
+                _max = max(_max, length)
+
+            return _max
+        
+        return dfs(s, k)
+
+def getIntersectionNode:
+    # 两个链表第一个公共节点
+    def getIntersectionNode(self, headA, headB):
+        if not headA or not headB:
+            return None
+        p, q = headA, headB
+        while(p!=q):
+            p = p.next if p else headB
+            q = q.next if q else headA
+
+        return p
