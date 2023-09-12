@@ -5238,3 +5238,57 @@ def getIntersectionNode:
             q = q.next if q else headA
 
         return p
+
+def OrangeRotting:
+    def orangeRotting(self, grid):
+        m, n = len(grid), len(grid[0])
+        stack = []
+        
+        count = 0
+        for i in range(m):
+            for j in range(n):
+                if grid[i][j] == 1:
+                    count += 1
+                elif grid[i][j] == 2:
+                    stack.append( (i,j) )
+        round = 0
+        while count>0 and len(stack)>0:
+            round += 1
+            size = len(stack)
+            for i in range(size):
+                (i, j) = stack.pop(0)
+                for dx, dy in [(-1,0), (1,0), (0,-1), (0,1)]:
+                    _i, _j = i+dx, j+dy
+                    if (_i>=0 and _i<m) and (_j>=0 and _j<n) and grid[_i][_j] == 1:
+                        grid[_i][j] = 2
+                        count -= 1
+                        stack.append( (_i, _j) )
+        return -1 if count>0 else round
+
+class ReverseString:
+    # In place 字符串反转
+    def reverseString(self, s):
+        l, r = 0, len(s)-1
+        while l<r:
+            s[l], s[r] = s[r], s[l]
+            l += 1
+            r -= 1
+
+class ReplaceElements:
+    # 替换为右侧最大值
+    def replaceElements(self, arr):
+        n, ans = -1, []
+        for i in range(len(arr)-1, -1, -1):
+            ans.append(n)
+            if arr[i]>n:
+                n = arr[i]
+        return ans[::-1]
+
+class Solution:
+    def longestDecomposition(self, text: str) -> int:
+        if len(text) <= 1:
+            return len(text)
+        for i in range(1, len(text) // 2 + 1):
+            if text[:i] == text[-i:]:
+                return 2 + self.longestDecomposition(text[i: -i])
+        return 1
