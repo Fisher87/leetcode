@@ -5285,6 +5285,7 @@ class ReplaceElements:
         return ans[::-1]
 
 class Solution:
+    # 段式回文串
     def longestDecomposition(self, text: str) -> int:
         if len(text) <= 1:
             return len(text)
@@ -5292,3 +5293,52 @@ class Solution:
             if text[:i] == text[-i:]:
                 return 2 + self.longestDecomposition(text[i: -i])
         return 1
+
+class MiddleNode:
+    # 链表中间节点
+    def middleNode(self, head):
+        if not head:
+            return head
+        slow, fast = head, head
+        while fast and fast.next:
+            slow = slow.next
+            fast = fast.next.next
+        return slow.next
+
+class IssameTree:
+    # 相同树
+    def isSameTree(self, p, q):
+        if not p and not q:
+            return True
+        if (not p or not q) or (p.val!=q.val):
+            return False
+
+        return self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)
+
+class SplitIntoFibonacci:
+    # 数组拆分成斐波那契序列
+    def splitIntoFibonaci(self, num):
+        ans = []
+        def backtrack(index):
+            if index == len(num):
+                return len(ans)>=3
+
+            curr = 0
+            for i in range(index, len(num)):
+                if i>index and num[index] == "0":
+                    break
+                curr = curr*10 + ord(num[i])-ord('0')
+                if curr > 2**31 -1:
+                    break
+
+                if len(ans)<2 or curr==ans[-2]+ans[-1]:
+                    ans.append(curr)
+                    if backtrack(i+1):
+                        return True
+                    ans.pop()
+                elif len(ans)>2 and curr != ans[-2]+ans[-1]:
+                    break
+            return False
+        
+        backtrace(0)
+        return ans
