@@ -5342,3 +5342,68 @@ class SplitIntoFibonacci:
         
         backtrace(0)
         return ans
+
+class VerifyPostorder:
+    # 判断二叉搜索树的后序遍历
+    def verifyPostorder(self, postorder):
+        if not postorder:
+            return False
+
+        def recur(i, j):
+            if i>=j:
+                return True
+            p = i
+            while postorder[p] < postorder[j]:
+                p += 1
+            m = p
+            while postorder[p] > postorder[j]:
+                p += 1
+            return p==j and recur(i, m-1) and recur(m, j-1)
+
+        return recur(0, len(postorder)-1)
+
+class Permutation:
+    # 字符串排列组合
+    def permutation(self, s):
+        size = len(s)
+        visited = [ False ] * len(s)
+        s = sorted(s)
+        self.ans = []
+        def trace(s, depth, size, perm):
+            if depth==size:
+                self.ans.append(perm)
+                return
+            for j in range(size):
+                if visited[j] or (j>0 and visited[j-1] and s[j-1]==s[j]):
+                    continue
+                visited[j] = True
+                perm += s[j]
+                trace(s, depth+1, size, perm)
+                perm = perm[:-1]
+                visited[j] = False
+        perm = ''
+        trace(s, 0, size, perm)
+        return self.ans
+
+class InsertIntoBST:
+    # 插入二叉搜索树
+    def insertIntoBST(self, root, val):
+        if not root:
+            return TreeNode(val)
+        
+        pos = root
+        while pos:
+            if val < pos.val:
+                if not pos.left:
+                    pos.left = TreeNode(val)
+                    break
+                else:
+                    pos = pos.left
+            else:
+                if not pos.right:
+                    pos.right = TreeNode(val)
+                    break
+                else:
+                    pos = pos.right
+        return root
+
