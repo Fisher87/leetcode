@@ -5407,3 +5407,62 @@ class InsertIntoBST:
                     pos = pos.right
         return root
 
+class MaxRepOpt1:
+    # 单字符重复子串最大长度
+    def maxRepOpt1(self, text):
+        cnt = Count(text)
+        res = 0
+        i = 0
+        while i<len(text):
+            j = i
+            while j<len(text) and text[j]==text[i]:
+                j += 1
+
+            # cur_cnt = (j-i)
+            # if cur_cnt < cnt[text[i]] and (j<len(text) or i>0):
+            #     res = max(res, cur_cnt+1)
+
+            k = j+1
+            while k<len(text) and text[k]==text[i]:
+                k += 1
+            res = max(res, min(k-i, cnt[text[i]]))
+
+        return res
+
+class Solution:
+    # 八皇后
+    def solveNQueens(self, n: int) -> List[List[str]]:
+        def generateBoard():
+            board = list()
+            for i in range(n):
+                row[queens[i]] = "Q"
+                board.append("".join(row))
+                row[queens[i]] = "."
+            return board
+
+        def backtrack(row: int):
+            if row == n:
+                board = generateBoard()
+                solutions.append(board)
+            else:
+                for i in range(n):
+                    if i in columns or row - i in diagonal1 or row + i in diagonal2:
+                        continue
+                    queens[row] = i
+                    columns.add(i)
+                    diagonal1.add(row - i)
+                    diagonal2.add(row + i)
+                    backtrack(row + 1)
+                    columns.remove(i)
+                    diagonal1.remove(row - i)
+                    diagonal2.remove(row + i)
+
+        solutions = list()
+        queens = [-1] * n
+        columns = set()
+        diagonal1 = set()
+        diagonal2 = set()
+        row = ["."] * n
+        backtrack(0)
+        return solutions
+
