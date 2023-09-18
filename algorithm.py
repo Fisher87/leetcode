@@ -5466,3 +5466,80 @@ class Solution:
         backtrack(0)
         return solutions
 
+class Solution:
+    # 解数独
+    def solveSudoku(self, board: List[List[str]]) -> None:
+        def dfs(pos: int):
+            nonlocal valid
+            if pos == len(spaces):
+                valid = True
+                return
+            
+            i, j = spaces[pos]
+            for digit in range(9):
+                if line[i][digit] == column[j][digit] == block[i // 3][j // 3][digit] == False:
+                    line[i][digit] = column[j][digit] = block[i // 3][j // 3][digit] = True
+                    board[i][j] = str(digit + 1)
+                    dfs(pos + 1)
+                    line[i][digit] = column[j][digit] = block[i // 3][j // 3][digit] = False
+                if valid:
+                    return
+            
+        line = [[False] * 9 for _ in range(9)]
+        column = [[False] * 9 for _ in range(9)]
+        block = [[[False] * 9 for _a in range(3)] for _b in range(3)]
+        valid = False
+        spaces = list()
+
+        for i in range(9):
+            for j in range(9):
+                if board[i][j] == ".":
+                    spaces.append((i, j))
+                else:
+                    digit = int(board[i][j]) - 1
+                    line[i][digit] = column[j][digit] = block[i // 3][j // 3][digit] = True
+
+        dfs(0)
+
+class SplitArray:
+    # 分割数组最大值
+    def splitArray(self, nums, m):
+        def check(x):
+            total, cnt = 0, 1
+            for num in nums:
+                if total+num>x:
+                    cnt += 1
+                    total = num
+                else:
+                    total += num
+            return cnt <= m
+
+        left = max(nums)
+        right= sum(nums)
+        while left < right:
+            mid = (left+right) // 2
+            if check(mid):
+                right = mid
+            else:
+                left = mid+1
+
+        return left
+
+class DeleteNode:
+    # 删除节点
+    def deleteNode(self, head, value):
+        dummy_node = ListNode(-1)
+        dummy_node.next = head
+        if not head:
+            return head
+
+        pre, cur = dummy_node, head
+        while cur:
+            if cur.val != value:
+                pre = cur
+                cur = cur.next
+            else:
+                pre.next = cur.next
+                cur = cur.next
+        return dummy_node.next
+
