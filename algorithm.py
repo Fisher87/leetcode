@@ -5543,3 +5543,109 @@ class DeleteNode:
                 cur = cur.next
         return dummy_node.next
 
+class SortArray:
+    def sortArray_quick(self, nums: List[int]) -> List[int]:
+        def partion(nums, left, right):
+            if left>=right:
+                return
+            pivot = random.randint(left, right)
+            nums[pivot], nums[right] = nums[right], nums[pivot]
+            i = left
+            for j in range(left, right):
+                if nums[j]<nums[right]:
+                    nums[j], nums[i] = nums[i], nums[j]
+                    i += 1
+            nums[i], nums[right] = nums[right], nums[i]
+            partion(nums, left, i-1)
+            partion(nums, i+1, right)
+
+        partion(nums, 0, len(nums)-1)
+        return nums
+
+    def sortArray_heap(self, nums):
+        def buildheap(i, size, nums):
+            if i>=size:
+                return
+            left, right = 2*i+1, 2*i+2
+            largest = i
+            if left < size and nums[left]>nums[largest]:
+                largest=left
+            if right< size and nums[right]>nums[largest]:
+                largest=right
+            if largest!=i:
+                nums[i], nums[largest] = nums[largest], nums[i]
+                buildheap(largest, size, nums)
+        n = len(nums)
+        for i in range(n//2, -1, -1):
+            buildheap(i, n, nums)
+        for i in range(n-1, -1, -1):
+            nums[0], nums[i] = nums[i], nums[0]
+            buildheap(0, i, nums)
+        return nums
+
+    def sortArray(self, nums):
+        def mergesort(left, right, nums):
+            if left==right:
+                return
+            mid = (left+right)//2
+            mergesort(left, mid, nums)
+            mergesort(mid+1, right,nums)
+            tmp = []
+            i, j = left, mid+1
+            while (i<=mid) or (j<=right):
+                if i>mid or(j<=right and nums[j]<nums[i]):
+                    tmp.append(nums[j])
+                    j += 1
+                else:
+                    tmp.append(nums[i])
+                    i += 1
+            nums[left:right+1] = tmp
+        mergesort(0, len(nums)-1, nums)
+        return nums
+
+class BSTIterator:
+    def __init__(self, root):
+        self.stack = []
+        while root:
+            self.stack.append(root)
+            root = root.left
+
+    def next(self):
+        cur = self.stack.pop()
+        node = cur.right
+        while node:
+            self.stack.append(node)
+            node = node.left
+        return cur.val
+
+    def hasNext(self):
+        return len(self.stack) > 0
+
+class Solution:
+    # 最大的以 1 为边界的正方形
+    def largestBorderedSquare(self, grid):
+        m, n = len(grid), len(grid[0])
+        left = [[0]*(n+1) for _ in range(m+1)] # 保存当前点左侧最长
+        up = [[0]*(n+1) for _ in range(m+1)]   # 保存当前点上侧最长
+        max_border = 0
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if grid[i-1][j-1]:
+                    left[i][j] = left[i][j-1]+1
+                    up[i][j] = up[i-1][j] + 1
+                    border = min(left[i][j], up[i][j])
+                    while left[i-border+1][j] < border or up[i][j-border+1] < border:
+                        border -= 1
+                    max_border = max(max_border, border)
+        return max_border ** 2
+
+class FlipEquiv:
+    # 翻转等价二叉树
+    def flipEquiv(self, root1, root2):
+        if root1 is root2:
+            return True
+        if not root1 or not root2 or root1.val!=root2.val:
+            return False
+        
+        return (self.flipEquiv(root1.left, root2.left) and self.flipEquiv(root1.right, root2.right)) or \
+                (self.flipEquiv(root1.left, root2.right) and self.flipEquiv(root1.right, root2.left))
