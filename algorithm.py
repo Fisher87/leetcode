@@ -5649,3 +5649,45 @@ class FlipEquiv:
         
         return (self.flipEquiv(root1.left, root2.left) and self.flipEquiv(root1.right, root2.right)) or \
                 (self.flipEquiv(root1.left, root2.right) and self.flipEquiv(root1.right, root2.left))
+
+class LevelOrderBottom:
+    def levelOrderBottom(self, root):
+        self.ans = []
+        if not root:
+            return []
+        stack = [root]
+        while stack:
+            size = len(stack)
+            tmp = []
+            for i in range(size):
+                node = stack.pop(0)
+                tmp.append(node.val)
+                if node.left:
+                    stack.append(node.left)
+                if node.right:
+                    stack.append(node.right)
+            self.ans.append(tmp)
+        return self.ans[::-1]
+
+
+class MaxNum:
+    # 拼接最大数: 从nums1 和 nums2 中分别选择k1, k2 个数(k1+k2=k)，使得最大，等效于
+    # (removeKdigits) 任务;
+    def maxNum(self, nums1, nums2, k):
+        def pick_max(nums, k):
+            stack = []
+            drop = len(nums)-k
+            for num in nums:
+                while drop and stack and stack[-1] < num:
+                    stack.pop()
+                    drop -= 1
+                stack.append(num)
+            return stack[:k]
+        def merge(A, B):
+            ans = []
+            while A or B:
+                bigger = A if A>B else B
+                ans.append(bigger.pop(0))
+            return ans
+
+        return max( merge(pick_max(nums1, i), pick_max(nums2, k-i)) for i in range(k+1) if i<=len(nums1) and k-i<=len(nums2) )
