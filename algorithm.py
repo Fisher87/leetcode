@@ -5691,3 +5691,39 @@ class MaxNum:
             return ans
 
         return max( merge(pick_max(nums1, i), pick_max(nums2, k-i)) for i in range(k+1) if i<=len(nums1) and k-i<=len(nums2) )
+
+class FindMaxLength:
+    def findmaxLength(self, nums):
+        counter= 0
+        maxlen = 0
+        prefix_counter = dict()
+        prefix_counter[counter] = -1
+        for i in range(len(nums)):
+            if nums[i] == 0:
+                counter -= 1
+            else:
+                counter += 1
+            if counter not in prefix_counter:
+                prefix_counter[counter] = i
+            else:
+                pi = prefix_counter[counter]
+                maxlen = max(maxlen, i-pi)
+        return maxlen
+
+class IsInterleave:
+    # 交错字符串-> 动态规划
+    def isInterleave(self, s1, s2, s3):
+        m, n, k = len(s1), len(s2), len(s3)
+        dp = [ [False]*(n+1) for _ in range(m+1) ]
+
+        if m+n != k:
+            return False
+        dp[0][0] = True
+        for i in range(m+1):
+            for j in range(n+1):
+                p = i+j-1
+                if i>0:
+                    dp[i][j] = (dp[i-1][j] and s1[i-1]==s3[p])
+                if j>0:
+                    dp[i][j] |= (dp[i][j-1] and s2[j-1]==s3[p])
+        return dp[m][n]
