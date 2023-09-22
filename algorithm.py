@@ -5727,3 +5727,79 @@ class IsInterleave:
                 if j>0:
                     dp[i][j] |= (dp[i][j-1] and s2[j-1]==s3[p])
         return dp[m][n]
+
+class CountPrimes:
+    # 计算质数
+    def countPrimes(self, n):
+        def check(x):
+            i=2
+            while i*i <= x:
+                if x % i == 0:
+                    return False
+            return True
+
+        ans = 0
+        for i in range(2, n):
+            if check(i):
+                ans += 1
+        return ans
+
+class IsHappy:
+    # 判断快乐数
+    def get_next(self, n):
+        total_sum = 0
+        while n>0:
+            n, digit = divmod(n, 10)
+            total_sum += digit**2
+        return total_sum
+
+    def isHappy(self, n):
+        seen = set()
+        # 判断是否循环出现
+        while n!=1 and n not in seen:
+            seen.add(n)
+            n = self.get_next(n)
+        return n==1
+
+    def isHappy_v2(self, n):
+        # 循环判断可以通过快慢指针来处理
+        slow_runner = n
+        fast_runner = self.get_next(n)
+        while fast_runner!=1 and fast_runner!=slow_runner:
+            slow_runner = self.get_next(slow_runner)
+            fast_runner = self.get_next( self.get_next(fast_runner) )
+        return fast_runner==1
+
+class MergeInBetween:
+    # 链表合并
+    def mergeInBetween(self, list1, a, b, list2):
+        dummynode = ListNode(-1)
+        dummynode.next = list1
+        pre, cur = dummynode, list1
+        for i in range(a):
+            pre = cur
+            cur = cur.next
+        phead = cur
+        for i in range(a, b+1):
+            phead = phead.next
+        pre.next = list2
+        cur = list2
+        while cur.next:
+            cur = cur.next
+        cur.next = phead
+
+        return dummynode.next
+    def mergeInBetween(self, list1, a, b, list2):
+        left_pointer, right_pointer = list1, list1
+        for i in range(a-1):
+            left_pointer = left_pointer.next
+        for i in range(b+1):
+            right_pointer= right_pointer.next
+
+        left_pointer.next = list2
+        last_pointer = list2
+        while last_pointer.next is not None:
+            last_pointer = last_pointer.next
+        last_pointer.next = right_pointer
+        return list1
+
