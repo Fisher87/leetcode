@@ -140,3 +140,30 @@ class TextCNN(nn.Module):
         return logits
 
 ############################################################################################################
+
+class SelfAttention(nn.Module):
+    def __init__(self, dim_in, dim_k, dim_v, n_heads):
+        super().__init__()
+        self.dim_in = dim_in
+        self.dim_k = dim_k
+        self.dim_v = dim_v
+        self.num_heads = n_heads
+
+        self.q_linear = nn.Linear(dim_in, dim_k)
+        self.k_linear = nn.Linear(dim_in, dim_k)
+        self.v_linear = nn.Linear(dim_in, dim_v)
+        self.o_linear = nn.Linear(dim_in, dim_in)
+
+    def forward(self, x):
+        bs, seq_len, dim_in = x.shape()
+        head_dim = self.dim_k // self.num_heads
+        q = self.q_linear(x).reshape(bs, seq_len, self.num_heads, head_dim).transpose(1, 2)
+        k = self.k_linear(x).reshape(bs, seq_len, self.num_heads, head_dim).transpose(1, 2)
+        v = self.v_linear(x).reshape(bs, seq_len, self.num_heads, head_dim).transpose(1, 2)
+
+        dist = torch.matmul(q, k.transpose(2, 3)) * 1/sqrt(head_dim)
+        dist = torch.softmax(dist, dim=-1)
+        attn = torch.matmul(dist, v)
+        attn = attn.transpose(1, 2).reshape(bs, seq_len, -1)
+
+        return attn
