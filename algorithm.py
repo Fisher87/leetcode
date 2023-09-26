@@ -3205,8 +3205,8 @@ class CombinationSum:
 
 class Viterbi:
     def viterbi(self, obs, states, start_prob, trans_prob, emission_prob):
-        T = len(obs)
-        N = len(states)
+        T = len(obs)        # 总的序列长度
+        N = len(states)     # 总的状态数
 
         # 初始化Viterbi矩阵和路径矩阵
         viterbi_mat = np.zeros((N, T))
@@ -3219,8 +3219,8 @@ class Viterbi:
         for t in range(1, T):
             for s in range(N):
                 prob = viterbi_mat[:, t-1] * trans_prob[:, s] * emission_prob[s, obs[t]]
-                viterbi_mat[s, t] = np.max(prob)
-                path_mat[s,t] = np.argmax(prob)
+                viterbi_mat[s, t] = np.max(prob)    # 表示当前状态为s时的最大概率值
+                path_mat[s,t] = np.argmax(prob)     # 表示的是由哪个位置(上一个状态)到当前位置状态为s概率最大
 
         # 回溯最优路径
         best_path = [np.argmax(viterbi_mat[:, -1])]
@@ -5802,4 +5802,145 @@ class MergeInBetween:
             last_pointer = last_pointer.next
         last_pointer.next = right_pointer
         return list1
+
+class ConstructFromPrePost:
+    # 根据前向和后向结果生成二叉树
+    def constructFromPrePost(self, pre, post):
+        if not pre:
+            return None
+        root = TreeNode(preorder[0])
+        if len(pre)==1:
+            return root
+        L = post.index(pre[1]) + 1
+        root.left = self.constructFromPrePost(pre[1:L+1], post[:L])
+        root.right= self.constructFromPrePost(pre[L+1:], post[L:-1])
+        return root
+
+class MaxIncreaseKeepingSkyline:
+    # 保持天际线
+    def maxIncreaseKeepingSkyline(self, grid):
+        m, n = len(grid), len(grid)[0]
+        ans = 0
+        for i in range(m):
+            for j in range(n):
+                row = grid[i][:]
+                col = [grid[_][j] for _ in range(n)]
+                ans += (min(max(row), max(col))-grid[i][j])
+        return ans
+
+class letterCombinations:
+    # 电话号码字母组合数
+    phoneMap = {
+        "2": "abc",
+        "3": "def",
+        "4": "ghi",
+        "5": "jkl",
+        "6": "mno",
+        "7": "pqrs",
+        "8": "tuv",
+        "9": "wxyz",
+    }
+    def letterCombinations(self, digits):
+        if not digits:
+            return []
+        combine, combines = [], []
+        def backtrace(inx):
+            if inx==len(digits):
+                combines.append(''.join(combine))
+            else:
+                for letter in phoneMap[digits[inx]]:
+                    combine.append(letter)
+                    backtrack(inx+1)
+                    combine.pop()
+        backtrack(0)
+        return combines
+
+class RepeateSubstringPattern:
+    # 重复字符串
+    def repeateSubstringPattern(self, s):
+        return (s+s).find(s, 1) == len(s)
+
+    def repeateSubstringPattern(self, s):
+        n = len(s)
+        for i in range(1, n//2+1):
+            if n%i==0:
+                if all(s[j]==s[j-i] for j in range(i,n)):
+                    return True
+        return False
+
+class SingleNumber:
+    # 重复数字
+    def singleNumber(self, nums):
+        freq = Counter(nums)
+        return [num for num,cnt in freq.items() if cnt==1]
+
+    def singleNumber(self, nums):
+        x_or_sum = 0
+        for num in nums:
+            x_or_sum ^= num
+
+        low_sb = x_or_sum & (-x_or_sum)   # 返回最低位为1 参考: https://blog.csdn.net/oyoung_2012/article/details/79932394
+
+        type1 = type2 = 0
+        for num in nums:
+            if num & low_sb:
+                type1 ^= num
+            else:
+                type2 ^= num
+        return [type1, type2]
+
+from sortedcontainers import SortedList
+class LongestSubarray:
+    # 绝对差不超过限制的最长连续子数组
+    def longestSubarray(self, nums, limit):
+        s = SortedList()
+        n = len(nums)
+        left = right = ret = 0
+
+        while right<n:
+            s.add(nums[right])
+            while s[-1]-s[0] >limit:
+                s.remove(nums[left])
+                left += 1
+            ret = max(ret, right-left+1)
+            right += 1
+
+        return ret
+
+class IceBreakingGame:
+    # 圆圈中剩下的最后数字 / 破冰游戏，【逆向思维，从最后一个往前推理, pos指的是下标】
+    def iceBreakingGame(self, nums, target):
+        n = len(nums)
+        pos = 0
+        for i in range(2, n+1):
+            pos = (pos + target) % i
+        return pos
+
+class IsRectangleOverlap:
+    # 矩形重叠
+    def isRectangleOverlap(self, rec1, rec2):
+        def check(p_left, p_right, q_left, q_right):
+            return min(p_right, q_right) > max(p_left, q_left)
+
+        return check(rec1[0], rec1[2], rec2[0], rec2[2]) and \
+                check(rec1[1], rec1[3], rec2[1], rec2[3])
+
+class DeepestLeavesSum:
+    def deepestLeavesSum(self, root):
+        if not root:
+            return 0
+        stack = [root]
+        while stack:
+            tmp = []
+            size = len(stack)
+            for i in range(size):
+                node = stack.pop(0)
+                tmp.append(node.val)
+                if node.left:
+                    stack.append(node.left)
+                if node.right:
+                    stack.append(node.right)
+
+            if not stack:
+                return sum(tmp)
 
