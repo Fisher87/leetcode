@@ -74,3 +74,69 @@ def apply_rotary_pos_emb(q, k, cos, sin, position_id):
     q, k = (q*cos) + (rotate_half(q)*sin), (k*cos)+(rotate_half(k)*sin)
 
 ############################################################################################################
+
+# RMSNorm: x = \frac{x}{\sum sqrt(x_{i}^2)}
+
+class RMSNorm(nn.Module):
+    def __init__(self, dim, eps):
+        super().__init__()
+        self.eps = eps
+        self.weight = nn.Parameter(torch.ones(dim))
+
+    def _norm(self, x):
+        return x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
+
+    def forward(self, x):
+        output = self._norm(x.float()).type_as(x)
+        return output * self.weight
+
+############################################################################################################
+
+class BiLstmCRF(nn.Module):
+    def __init__(self, vocab_size, hidden_size, embedding_size, tag2id):
+        super().__init__()
+        self.embedding_size = embedding_size
+        self.hidden_size = hidden_size
+        self.vocab_size = vocab_size
+        self.tag2id = tag2id
+        self.tagset_size = len(tag2id)
+
+        self.word_embeds = nn.Embedding(vocab_size, embedding_size)
+        self.lstm = nn.LSTM(embedding_size, hidden_size//2, num_layers=1, bidirection=True)
+        self.hidden2tag = nn.Linear(hidden_dim, self.tagset_size)
+
+        self.transitions = nn.Parameter(
+            torch.randn(self.tagset_size, self.tagset_size))
+
+        self.transitions.data[tag2id[START_TAG], :] = -10000
+        self.transitions.data[:, tag2id[STOP_TAG]] = -10000
+
+        self.hidden = (    # 初始的hidden
+            torch.randn(2, 1, self.hidden_size//2), torch.randn(2, 1, self.hidden_size//2))
+
+############################################################################################################
+
+class TextCNN(nn.Module):
+    def __init__(self, vocab_size, embedding_dim, n_filters, filter_sizes, output_dim, dropout):
+        super().__init__()
+        self.vocab_size = vocab_size
+        self.embed_dim = embedding_dim
+        self.embedding_layer = nn.Embedding(vocab_size, embedding_dim)
+        self.conv_layers = nn.ModuleList(
+            [
+                nn.Conv2d(in_channels=1, out_channels=n_filters, kernel_size=(f_size, self.embed_dim))
+                    for f_size in filter_sizes
+            ]
+        )
+        self.fc = nn.Linear(n_filters*len(filter_sizes), output_dim)
+        self.dropout = nn.Dropout(dropout)
+    def forward(self, x):
+        x = self.embedding_layer(x)
+        x = x.unsqueeze(1)
+        conved = [F.relu(conv(x)).squeeze(3) for conv in self.conv_layers]
+        pooled = [F.max_pool1d(conv, conv.shape[2]).squeeze(2) for conv in conved]
+        cat = self.dropout(torch.cat(pooled, dim=1))
+        logits = self.fc(cat)
+        return logits
+
+############################################################################################################
