@@ -889,14 +889,15 @@ class ReversePairs:
     # 数组中的逆序对
     # 使用树状数组 / 归并排序
     def reversePairs(self, nums):
+        self.ans = 0
         n = len(nums)
         bit = Bit(n)
         _nums = sorted(nums)
         for i in range(n-1, -1, -1):
             _id = self.get_id(_nums, nums[i])
-            ans += bit.query(_id-1)
+            self.ans += bit.query(_id-1)
             bit.update(_id)
-        return ans
+        return self.ans
 
     def get_id(self, nums, x):
         return bisect.bisect_left(nums, x)+1
@@ -5944,3 +5945,75 @@ class DeepestLeavesSum:
             if not stack:
                 return sum(tmp)
 
+class FindDisappearedNumbers:
+    def findDisappearedNumbers(self, nums: List[int]) -> List[int]:
+        return list(set([i+1 for i in range(len(nums))]) - set(nums))
+
+class LargestNumber:
+    def largestNumber(self, nums):
+        def _sort(x, y):
+            x, y = str(x), str(y)
+            if x+y > y+x:
+                return 1
+            elif x+y < y+x:
+                return -1
+            else:
+                return 0
+        nums = sorted(nums, key=cmp_to_key(_sort), reverse=True)
+        if str(nums[0]) == "0":
+            return "0"
+        return ''.join([str(n) for n in nums])
+
+class Solution:
+    def uniquePathsWithObstacles(self, obstacleGrid: List[List[int]]) -> int:
+        m, n = len(obstacleGrid), len(obstacleGrid[0])
+        dp = [ [0]*(n) for _ in range(m) ]
+        dp[0][0] = 0 if obstacleGrid[0][0]==1 else 1
+        for i in range(1, m):
+            dp[i][0] = dp[i-1][0] if obstacleGrid[i][0]!=1 else 0
+        for j in range(1, n):
+            dp[0][j] = dp[0][j-1] if obstacleGrid[0][j]!=1 else 0
+
+        for i in range(1, m):
+            for j in range(1, n):
+                if obstacleGrid[i][j]==1:
+                    dp[i][j] = 0
+                else:
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1]
+        return dp[-1][-1]
+
+class Solution:
+    # 整数替换
+    def integerReplacement(self, n: int) -> int:
+        @cache
+        def dfs(n):
+            if n==1:
+                return 0
+            if n%2==0:
+                return dfs(n//2) + 1
+            else:
+                return min(dfs(n//2), dfs(n//2+1)) + 1
+        return dfs(n)
+
+class Solution:
+    # 寻找最近回文数
+    def nearestPalindromic(self, n: str) -> str:
+        m = len(n)
+        candidates = [10 ** (m - 1) - 1, 10 ** m + 1]
+        selfPrefix = int(n[:(m + 1) // 2])
+        for x in range(selfPrefix - 1, selfPrefix + 2):
+            y = x if m % 2 == 0 else x // 10
+            while y:
+                x = x * 10 + y % 10
+                y //= 10
+            candidates.append(x)
+
+        ans = -1
+        selfNumber = int(n)
+        for candidate in candidates:
+            if candidate != selfNumber:
+                if ans == -1 or \
+                        abs(candidate - selfNumber) < abs(ans - selfNumber) or \
+                        abs(candidate - selfNumber) == abs(ans - selfNumber) and candidate < ans:
+                    ans = candidate
+        return str(ans)
