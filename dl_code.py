@@ -10,6 +10,8 @@
 #
 #================================================================
 
+from einops import rearrange
+
 def viterbi(obs, states, start_prob, trans_prob, emission_prob):
     T = len(obs)
     N = len(states)
@@ -92,6 +94,12 @@ class RMSNorm(nn.Module):
 
 ############################################################################################################
 
+class LayerNorm(nn.Module):
+    def __init__():
+        pass
+
+############################################################################################################
+
 class BiLstmCRF(nn.Module):
     def __init__(self, vocab_size, hidden_size, embedding_size, tag2id):
         super().__init__()
@@ -167,3 +175,46 @@ class SelfAttention(nn.Module):
         attn = attn.transpose(1, 2).reshape(bs, seq_len, -1)
 
         return attn
+
+############################################################################################################
+# multiquery attention
+
+class MQA(nn.Module):
+    def __init__(self, d_model, head_nums, device=None):
+        super().__init__()
+        self.d_model = d_model
+        self.head_nums = head_nums
+        self.head_dim = d_model//head_nums
+
+        self.Wqkv = nn.Linear(
+            d_model,
+            d_model + 2 * self.head_dim
+            device=device)
+        self.out_proj = nn.Linear(d_model, d_model, device=device)
+
+    def forward(self, x, 
+                attn_bias=None,
+                attention_mask=None,
+                is_causal=True,
+                needs_weights=False):
+        # qkv
+        qkv = self.Wqkv(x)
+        query, key, value = qkv.split( [self.d_model, self.head_dim, self.head_dim], dim=2)
+        key_padding_mask = attention_mask
+
+        context, attn_weights, past_key_value = self.attn_fn(query, key, value, 
+                                                     self.head_nums, self.softmax_scale, multiquery=True)
+        return self.out_proj(context), attn_weights
+
+    def attn_fn(self, query, key, value, n_heads, softmax_scale=None, multiquery=False):
+        q = rearrange(query, 'b s (h d) -> b h s d', h=n_heads)
+        kv_n_heads = 1 if multiquery else n_heads
+        k = rearrange(key, 'b s (h d) -> b h d s', h=kv_n_heads)
+        v = rearrange(value, 'b s (h d) -> b h s d', h = kv_n_heads)
+
+        attn_weights = q.matmul(k) * softmax_scale
+        attn_weights = torch.softmax(attn_weights, dim=-1)
+
+        out = attn_weights.matmul(v)
+        out = rearrange(out, 'b h s d -> b s (h d)')
+        return out, attn_weight
