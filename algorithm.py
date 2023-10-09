@@ -6017,3 +6017,30 @@ class Solution:
                         abs(candidate - selfNumber) == abs(ans - selfNumber) and candidate < ans:
                     ans = candidate
         return str(ans)
+
+class RemoveDuplicates:
+    # 删除有序数组重复数字(最多保留一个)
+    def removeDuplicates(self, nums):
+        if not nums:
+            return 0
+        p, q = 1, 1
+        while q<len(nums):
+            if (nums[p-1]!=nums[q]):
+                nums[p] = nums[q]
+                p += 1
+            q += 1
+        return p
+
+    # 删除有序数组重复数字(最多保留两个)
+    def removeDuplicates(self, nums):
+        size = len(nums)
+        if size<=2:
+            return size
+        slow, fast = 2, 2
+        while fast<size:
+            if nums[slow-2] != nums[fast]:
+                nums[slow] = nums[fast]
+                slow += 1
+            fast += 1
+        return slow
+
