@@ -6044,3 +6044,71 @@ class RemoveDuplicates:
             fast += 1
         return slow
 
+class MinOperations:
+    def minOperations(self, s1, s2, x):
+        n = len(s1)
+        idxs = [i for i in range(n) if s1[i]!=s2[i]]
+        k = len(idxs)
+        if k % 2:
+            return -1
+        dp = [inf] * (k+1)
+        dp[0] = 0
+        for i in range(k):
+            if i%2==0:
+                dp[i+1] = dp[i]
+            else:
+                dp[i+1] = dp[i] + x
+            if i:
+                dp[i+1] = min(dp[i+1], dp[i-1]+idxs[i]-idxs[i-1])
+        return dp[k]
+
+    def minOperations(self, s1, s2, x):
+        if s1.count('1') % 2 != s2.count('1') %2:
+            return -1
+
+        @cache
+        def dfs(i, j, pre_rev):
+            if i<0:
+                return inf if j or per_rev else 0
+            if (s1[i] == s2[i]) == (not pre_rev):
+                return dfs(i-1, j, False)
+            res = min(dfs(i-1, j+1, False)+x, dfs(i-1, j, True)+1)
+            if j:
+                res = min(res, dfs(i-1, j-1, False))
+            return res
+
+        return dfs(len(s1)-1, 0, False)
+
+class Combine:
+    # 组合
+    def combine(self, n, k):
+        ans = []
+        def dfs(i, path, depth):
+            if depth == k:
+                ans.append(path[:])
+                return
+
+            for d in range(i, n+1):
+                if d in set(path):
+                    continue
+                path.append(d)
+                dfs(d+1, path, depth+1)
+                path.pop()
+        path = []
+        dfs(1, path, 0)
+        return ans
+
+    def combine(self, n, k):
+        ans, path = [], []
+        def dfs(start_index, path):
+            if len(path) == k:
+                ans.append(path[:])
+                return
+            size = n - (k-len(path)) + 1    # 减少回溯
+            for i in range(start_index, size+1):
+                path.append(i)
+                dfs(i+1, path)
+                path.pop()
+        dfs(1, path)
+        return ans
+
