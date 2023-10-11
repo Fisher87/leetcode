@@ -218,3 +218,61 @@ class MQA(nn.Module):
         out = attn_weights.matmul(v)
         out = rearrange(out, 'b h s d -> b s (h d)')
         return out, attn_weight
+
+############################################################################################################
+
+def _make_causal_mask(
+    input_ids_shape: torch.Size, dtype: torch.dtype, device: torch.device, past_key_values_length: int = 0):
+    """
+    Make causal mask used for bi-directional self-attention.
+    """
+    bsz, tgt_len = input_ids_shape
+    mask = torch.full((tgt_len, tgt_len), torch.finfo(dtype).min, device=device)
+    mask_cond = torch.arange(mask.size(-1), device=device)
+    mask.masked_fill_(mask_cond < (mask_cond + 1).view(mask.size(-1), 1), 0)    # 构建causal mask
+    mask = mask.to(dtype)
+
+    if past_key_values_length > 0:
+        mask = torch.cat([torch.zeros(tgt_len, past_key_values_length, dtype=dtype, device=device), mask], dim=-1)
+    return mask[None, None, :, :].expand(bsz, 1, tgt_len, tgt_len + past_key_values_length)
+
+############################################################################################################
+
+class PositionEmbedding(nn.Module):
+    def __init__(self, max_len, dim):
+        pe = torch.zeros(max_len, dim)
+        pos = torch.arange(max_len).unsqueeze(1)
+        # -torch.arange(0,dim,2)/dim * math.log(10000.)
+        div_term = torch.exp( torch.arange(0, dim, 2)*( -math.log(10000.)/dim ) )
+        pe[:, 0::2] = torch.sin(pos * div_term)
+        pe[:, 1::2] = torch.cos(pos * div_term)
+        self.register_buffer('pe', pe)
+    
+    def forward(self, x):
+        l, *_ = x.shape
+        return self.pe[:l, :].unsqueeze(1)
+
+############################################################################################################
+
+class GLobalPointerLoss(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+    def forward(self, y_pred, y_true):
+        '''
+        y_true / y_pred : [bsz, num_heads, max_seq_len, max_seq_len]
+        '''
+        bsz, num_heads, max_seq_len = y_pred.shape[:3] 
+        y_true = y_true.reshape([bsz*num_heads, -1])
+        y_pred = y_pred.reshape([bsz*num_heads, -1])
+
+        y_pred = (1 - 2*y_true) * y_pred     # 交换，将负样本得分s_i 保持不变，正样本得分s_j 变为 -s_j
+        y_pred_neg = y_pred - y_true * 1e12
+        y_pred_pos = y_pred - (1-y_true) * 1e12
+
+        zero_vec = torch.zeros([bsz*num_heads, 1], device=y_pred.device)
+        y_pred_neg = torch.cat([y_pred_neg, zero_vec], dim=-1)
+        y_pred_pos = torch.cat([y_pred_pos, zero_vec], dim=-1)
+        neg_loss = torch.logsumexp(y_pred_neg, dim=-1)
+        pos_loss = torch.logsumexp(y_pred_pos, dim=-1)
+        return torch.mean(neg_loss + pos_loss)
