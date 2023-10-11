@@ -6112,3 +6112,18 @@ class Combine:
         dfs(1, path)
         return ans
 
+class Solution:
+    # 打乱数组, 保证概率相同
+    def __init__(self, nums):
+        self.nums = nums
+        self.original = nums.copy()
+
+    def reset(self):
+        self.nums = self.original.copy()
+        return self.nums
+
+    def shuffle(self):
+        for i in range(len(self.nums)):
+            j = random.randrange(i, len(self.nums))
+            self.nums[i], self.nums[j] = self.nums[j], self.nums[i]
+        return self.nums
