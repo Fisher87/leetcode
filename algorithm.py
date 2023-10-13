@@ -168,6 +168,7 @@ class LowestCommonAncestor:
         dfs(root, p, q)
 
         return self.ans
+
     def lowestCommonAncestor(self, root, p, q):
         if not root or root == p or root == q:return root
         left = self.lowestCommonAncestor(root.left, p, q)
@@ -6172,3 +6173,27 @@ class CanFinish:
         for i in range(numCourses):
             if not dfs(i, adjacency, flags): return False
         return True
+
+class checkSymmetricTree:
+    def checkSymmetricTree(self, root):
+        def check(left, right):
+            if not left and not right:
+                return True
+            if not left or not right or left.val != right.val:
+                return False
+            return check(left.left, right.right) and check(left.right, right.left)
+        if not root:
+            return True
+        return check(root.left, root.right)
+            
+class LowestCommonAncestor:
+    def lowestCommonAncestor(self, root, p, q):
+        if not root or root.val==p.val or root.val==q.val:
+            return root
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right= self.lowestCommonAncestor(root.right, p, q)
+        if not left:   # 说明两个节点都在right
+            return right
+        if not right:
+            return left
+        return root    # 说明两个节点分别在左右两边
