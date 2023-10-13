@@ -6197,3 +6197,13 @@ class LowestCommonAncestor:
         if not right:
             return left
         return root    # 说明两个节点分别在左右两边
+
+class shiftingLetters:
+    def shiftingLetters(self, s, shifts):
+        ans = []
+        prefixsum = sum(shifts) % 26
+        for i, c in enumerate(s):
+            ans.append(chr(ord('a') + (ord(c)-ord('a') + prefixsum) % 26))
+            prefixsum = (prefixsum - shifts[i]) % 26
+
+        return "".join(ans)
