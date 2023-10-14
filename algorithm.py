@@ -6207,3 +6207,60 @@ class shiftingLetters:
             prefixsum = (prefixsum - shifts[i]) % 26
 
         return "".join(ans)
+
+class Convert:
+    # N 字形变换
+    def convert(self, s, numRows):     # 模拟二维矩阵位置
+        maxcol = len(s)//numRows + 1
+        if numRows == 1 or numRows>=len(s):
+            return s
+        t = numRows * 2 - 2
+        col = (len(s)+t-1) // t * (numRows-1)
+        grid = [ ['']*c for _ in range(numRows) ]
+
+        m, n = 0, 0
+        for c in s:
+            grid[m][n] = c
+            if n%(numRows-1) == 0:
+                if m<(numRows-1):
+                    m += 1
+                else:
+                    m -= 1
+                    n += 1
+            else:
+                n += 1
+                m -= 1
+
+        return ''.join(ch for row in grid for ch in row if ch)
+
+    def convert(self, s, numRows):
+        r = numRows
+        if r==1 or r>=len(s):
+            return s
+        max = [ [] for _ in range(r) ]
+        t, x = r*2-2, 0
+        for i, ch in enumerate(s):
+            max[x].append(ch)
+            x += 1 if i%t<r-1 else -1
+        return ''.join(ch for row in grid for ch in row if ch)
+
+class CheckInclusion:
+    def checkInclusion(self, s1, s2):
+        if len(s1)>len(s2):
+            return False
+        counter1 = collections.Counter(s1)
+        n = len(s2)
+        left, right = 0, len(s1)-1
+        counter2 = collections.Counter(s2[0:right])
+        while right<n:
+            counter2[s2[right]] += 1
+            if counter2==counter1:
+                return True
+            counter2[s2[left]] -= 1
+            if counter2[s2[left]] == 0:
+                del counter2[s2[left]]
+            left += 1
+            right+= 1
+
+        return False
+
