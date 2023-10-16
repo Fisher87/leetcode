@@ -6264,3 +6264,69 @@ class CheckInclusion:
 
         return False
 
+class nextGreaterElement:
+    def nextGreaterElement(self, nums1, nums2):
+        next_g, stack = dict(), []
+        for num in reversed(nums2):
+            while stack and num > stack[-1]:
+                stack.pop()
+            next_g[num] = stack[-1] if stack else -1
+            stack.append(num)
+        return [next_g[num] for num in nums1]
+
+class NumsSameConsecDiff:
+    # 连续差相同的数字
+    def numsSameConsecDiff(self, n, k):
+        q = deque(range(1, 10))
+
+        while n>1:
+            size = len(q)
+            for _ in range(size):
+                u = q.popleft()
+                for v in {u % 10 - k, u % 10 + k}:  # 不用集合就判断k=0
+                    if 0<=v<=9:
+                        q.append(u*10 + v)
+            n -= 1
+
+        return list(q)
+
+class LongestDiverseString:
+    # 最长快乐数
+    def longestDiverseString(self, a, b, c):
+        ans = []
+        c_cnt = [[a, 'a'], [b, 'b'], [c, 'c']]
+        while True:
+            c_cnt.sort(key= lambda x: -x[0])
+            hasNext = False
+            for i, (cnt, ch) in enumerate(c_cnt):
+                if cnt<=0:
+                    break
+                if len(ans)>=2 and ans[-2]==ch and ans[-1]==ch:
+                    continue
+                hasNext = True
+                ans.append(ch)
+                c_cnt[i][0] -= 1
+                break
+
+            if not hasNext:
+                return ''.join(ans)
+
+class FindLengthOfShortestSubarray:
+    # 删除最短子数组使有序
+    def findLengthOfShortestSubarray(self, arr):
+        n = len(arr)
+        right = n-1
+        while right and arr[right-1]<=arr[right]:
+            right -= 1
+        if right==0:
+            return 0
+        # 此时有arr[right-1] > arr[right]
+        ans = right
+        left= 0
+        while left==0 or arr[left-1] <= arr[left]:
+            while right<n and arr[left] > arr[right]:
+                right += 1
+            # 此时 arr[left] <= arr[right], 删除[left+1:right]
+            ans = min(ans, right-left-1)
+            left += 1
+        return ans
