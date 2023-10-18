@@ -6330,3 +6330,168 @@ class FindLengthOfShortestSubarray:
             ans = min(ans, right-left-1)
             left += 1
         return ans
+
+class LargestTimeFromDigits:
+    def largestTimeFromDigits(self, arr):
+        ans = -1
+        max_hours, max_mins = -1, -1
+        for h1, h2, m1, m2 in itertools.permutations(arr):
+            hours = 10*h1 + h2
+            mins = 10*m1 + m2
+            time = 60 * hours + mins
+            if 0<=hours<24 and 0<=mins<60 and time>ans:
+                ans = time
+                max_hours, max_mins = hours, mins
+        return f"{max_hours}:{max_mins}" if ans>=0 else ""
+
+class Rob:
+    # 打家劫舍
+    def rob(self, nums):
+        n = len(nums)
+        if n==1:
+            return nums[0]
+        if n==2:
+            return max(nums)
+
+        dp = [ 0 ]*n
+        dp[0], dp[1] = nums[0], max(dp[0], dp[1])
+        for i in range(2, n):
+            dp[i] = max(dp[i-1], dp[i-2]+nums[i])
+        return dp[-1]
+
+    # 进阶版(环形), 解决思路：将环形看做两个非环形组合，(选取第一个和选取最后一个)
+    # 然后分别处理，选择最大值即可
+    def rob(self, nums):
+        def _rob(nums):
+            cur, pre = 0, 0
+            for num in nums:
+                cur, pre = max(cur, pre+num), cur
+            return cur
+        
+        return max(_rob(nums[:-1], _rob(nums[1:]))) if len(nums)!=1 else nums[0]
+
+class InvertoryManagement:
+    def invertoryManagement(self, stock, cnt):
+        stock = sorted(stock)
+        return stock[:cnt]
+
+    def invertoryManagement(self, stock, cnt):
+        if cnt==0:
+            return []
+        hp = [-x for x in stock[:cnt]]
+        heapq.heapify(hp)
+        for i in range(cnt, len(stock)):
+            if -hp[0] > stock[i]:
+                heapq.heappop(hp)
+                heqpq.heappush(hp, -stock[i])
+        ans = [-x for x in hp]
+        return ans
+
+class FinalPrice:
+    def finalPrice(self, prices):
+        # [8, 4, 6, 2, 3]
+        ans = [-1]*len(prices)
+        stack = []
+        for i in range(len(prices)-1, -1, -1):
+            while stack and stack[-1] > prices[i]:
+                stack.pop()
+            if stack:
+                ans[i] = stack[-1]
+            stack.append(prices[i])
+        _prices = []
+        for i,price in enumerate(prices):
+            _price = price if ans[i]==-1 else price-ans[i]
+            _prices.append(_price)
+        return _prices
+
+class KMP:
+    def build_next(self, pattern):
+        n = len(pattern)
+        next_table = [0]
+        j, i = 0, 1
+        while i<n:
+            if pattern[i] == pattern[j]:
+                j += 1
+                i += 1
+                next_table.append(j)
+            else:
+                if j==0:
+                    next_table.append(0)
+                else:
+                    j = next_table[j-1]
+        return next_table
+
+    def search_location(self, source, pattern):
+        next_table = self.build_next(pattern)
+        i, j = 0, 0
+        locations = []
+        while i<len(source):
+            if source[i]==pattern[j]:
+                i += 1
+                j += 1
+                if j==len(pattern):
+                    locations.append( i-j )
+                    j = next_table[-1]
+
+            elif j==0:
+                i += 1
+
+            else:
+                j = next_table[j-1]
+
+        return locations
+
+class WordBreak:
+    # 单词拆分
+    def wordBreak(self, s, wordDict):
+        
+        @lru_cache(None)
+        def backtrack(index):
+            if index==len(s):
+                return [[]]
+            ans = []
+            for i in range(index+1, len(s)+1):
+                word = s[index:i]
+                if word in wordSet:
+                    nextWordBreaks = backtrack(i)
+                    for nextWordBreak in nextWordBreaks:
+                        ans.append(nextWordBreak.copy() + [word])
+            return ans
+
+        @lru_cache(None)
+        def backtrackv2(index, path):   # unhashable type: list
+            path = list(path)
+            if index==len(s):
+                self.ans.append(path[:])
+                return
+
+            for i in range(index+1, len(s)+1):
+                word = s[index:i]
+                if word in wordSet:
+                    path.append(word)
+                    backtrack(i, tuple(path))
+                    path.pop()
+        
+        wordSet = set(wordDict)
+        breakList = backtrack(0)
+        return [" ".join(words[::-1]) for words in breakList]
+
+    def wordBreak_v2(self, s, wordDict):
+        kmp = KMP()
+        local_index = [ [] for _ in range(len(s)) ]
+        for i, word in enumerate(wordDict):
+            locations = kmp.search_location(s, word)
+            for location in locations:
+                local_index[location].append(i)
+
+        result, r = [], []
+        def dfs(index):
+            if index == len(s):
+                _s = ' '.join(r)
+                result.append(_s)
+            for j in local_index[index]:
+                r.append(wordDict[j])
+                dfs(index+len(wordDict[j]))
+                r.pop()
+        dfs(0)
+        return result
