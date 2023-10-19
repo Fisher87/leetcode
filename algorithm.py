@@ -6495,3 +6495,90 @@ class WordBreak:
                 r.pop()
         dfs(0)
         return result
+
+class NestedIterator:
+    def __init__(self, nestedList):
+        self.queue = collections.deque()
+        def helper(nests):
+            for nest in nests:
+                if nest.isInteger():
+                    self.queue.append(nest.getInteger())
+                else:
+                    helper(nest.getList())
+        helper(nestedList)
+
+    def next(self):
+        return self.queue.popleft()
+
+    def hasNext(self):
+        return len(self.queue) > 0
+
+class NestedIterator:
+    def __init__(self, nestedList):
+        self.stack = []
+        for i in range(len(nestedList)-1, -1, -1):
+            self.stack.append(nestedList[i])
+
+    def next(self):
+        cur = self.stack.pop()
+        return cur.getInteger()
+
+    def hasNext(self):
+        while self.stack:
+            if self.stack[-1].isInteger():
+                return True
+            nest = self.stack.pop()
+            for i in range(len(nest.getList())-1, -1, -1):
+                self.stack.append(nest.getList()[i])
+
+        return False
+
+class ShortestPalindrome:
+    # 最短回文串
+    def shortestPalidrome(self, s):
+        n = len(s)
+        fail = [-1] * n
+        for i in range(1, n):
+            j = fail[i-1]
+            while j != -1 and s[j+1] != s[i]:
+                j = fail[j]
+            if s[j+1] == s[i]:
+                fail[i] = j + 1
+
+        best = -1
+        for i in range(n-1, -1, -1):
+            while best != -1 and s[best+1] !=s[i]:
+                best = fail[best]
+            if s[best+1] == s[i]:
+                best += 1
+
+        add = ("" if best==n-1 else s[best+1:])
+        return add[::-1] + s
+
+    def shortestPalidrome_v2(self, s):
+        n = len(s)
+        # build next table
+        fail = [ 0 ] * n
+        for i in range(1,n):
+            j = fail[i-1]
+            while j>0 and s[j] != s[i]:
+                j = fail[j-1]
+            if s[j] == s[i]:
+                fail[i] = j+1
+
+        # 进行匹配，获取匹配位置
+        s1 = s[::-1]
+        j = 0
+        for i in range(n):
+            while j>0 and s1[i]!=s[j]:
+                j = fail[j-1]
+
+            if s1[i] == s[j]:
+                j += 1
+
+        add = s[j:]
+        return add[::-1] + s
+
+
+
+
