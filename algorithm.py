@@ -6579,6 +6579,86 @@ class ShortestPalindrome:
         add = s[j:]
         return add[::-1] + s
 
+class ValidPalindrome:
+    # 是否回文串，(可删除一个)
+    def validPalindrome(self, s):
+        n = len(s)
+        def check(left, right):
+            while left<=right:
+                if s[left] != s[right]:
+                    return False
+                left += 1
+                right -= 1
+            return True
 
+        left, right = 0, n-1
+        while left <= right:
+            if s[left] == s[right]:
+                left += 1
+                right -= 1
+            else:
+                return check(left, right-1) or check(left+1, right)
 
+        return True
 
+class Solution:
+    # N 叉树遍历
+    def preorder(self, root):
+        if not root:
+            return []
+        self.ans = []
+        def dfs(root):
+            if not root:
+                return
+            self.ans.append(root.val)
+            for node in root.children:
+                dfs(node)
+        return self.ans
+
+    def preorder(self, root):
+        if not root:
+            return []
+        self.ans = []
+        stack = [root]
+        while stack:
+            root = stack.pop()
+            self.ans.append(root.val)
+            for node in root.children[::-1]:
+                stack.append(node)
+
+        return self.ans
+
+class FindMaxConsecutiveOnes:
+    def findMaxConsecutiveOnes(self, nums):
+        count, maxcount = 0, 0
+        for num in nums:
+            if num==1:
+                count += 1
+            else:
+                maxcount = max(maxcount, count)
+                count = 0
+        maxcount = max(maxcount, count)
+        return maxcount
+
+class PathTarget:
+    def pathTarget(self, root, target):
+        if not root:
+            return []
+        self.ans = []
+        def check(root, path, s):
+            if not root:
+                return 
+
+            s += root.val
+            path.append( root.val )
+            if not root.left and not root.right:
+                if s==target:
+                    self.ans.append(path[:])
+            check(root.left, path, s)
+            check(root.right, path, s)
+            s -= root.val
+            path.pop()
+
+        check(root, [], 0)
+
+        return self.ans
