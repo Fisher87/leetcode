@@ -1499,17 +1499,6 @@ class CountSmall:
             c[_id] += 1
             _id += self.lowbit(_id)
 
-class NumTrees:
-    # 不同的二叉搜索树
-    def numTree(self, nums):
-        n = len(nums)
-        dp = [0]*(n+1)
-        dp[0], dp[1] = 1, 1
-        for i in range(2, n):
-            for j in range(1, i+1):
-                dp[i] = dp[j-1]*dp[i-j]
-        return dp[n]
-
 class MaxProfit:
     # 买卖股票最佳时间
     def maxProfit(self, prices):
@@ -6662,3 +6651,74 @@ class PathTarget:
         check(root, [], 0)
 
         return self.ans
+
+class NumTrees:
+    # 不同的二叉搜索树
+    def numTrees(self, n):
+        dp = [ 0 ] * (n+1)   # dp[i] 表示序列长度为i时对应的二叉搜索树个数
+        dp[0], dp[1] = 1, 1
+        for i in range(2, n+1):
+            for j in range(1, i+1):
+                dp[i] += dp[j-1] * dp[i-j]
+        return dp[-1]
+
+class RomanToInt:
+    # 罗马 to int
+    SYMBOL_VALUES = {
+        'I': 1,
+        'V': 5,
+        'X': 10,
+        'L': 50,
+        'C': 100,
+        'D': 500,
+        'M': 1000,
+    }
+    def romanToint(self, s):
+        ans = 0
+        for i in range(len(s)):
+            value = self.SYMBOL_VALUES[s[i]]
+            if i<len(s)-1 and value < self.SYMBOL_VALUES[s[i+1]]:
+                ans -= value
+            else:
+                ans += value
+        return ans
+
+class ReverseParentheses:
+    def reverseParentheses(self, s):
+        stack = []
+        for ch in s:
+            if ch == ")":
+                tmp = ''
+                while stack[-1] != '(':
+                    tmp += stack.pop()
+                stack.pop()
+                tmp = tmp[::-1]
+                stack += list(tmp)
+            else:
+                stack.append(ch)
+        return ''.join(stack[::-1])
+
+class ThreeSumCloset:
+    def threeSumCloset(self, nums, target):
+        nums.sort()
+        n = len(nums)
+        nearest = -1
+        for i in range(n-2):
+            if i>0 and nums[i]==num[i-1]:
+                continue
+            left, right = i+1, n-1
+            while left < right:
+                s = nums[left] + nums[right] + nums[i]
+                if s==target:
+                    return s
+                if abs(s-target) < abs(nearest-target):
+                    nearest = s
+                if s>target:
+                    right -= 1
+                    while left<right and nums[right]==nums[right+1]:
+                        right -= 1
+                else:
+                    left += 1
+                    while left<right and nums[left]==nums[left-1]:
+                        left += 1
+        return nearest
