@@ -6879,3 +6879,37 @@ class Solution:
                 cur.e2 = calculateToken(token)
                 cur.status = ExprStatus.MULT2
         return cur.value
+
+class SingleNumber:
+    def singleNumber(self, nums):
+        ans = 0
+        for i in range(32):
+            total = sum(num>>i for num in nums)
+            if total % 3 :
+                if i==31:
+                    ans -= (1<<i)
+                else:
+                    ans |= (1<<i)
+
+        return ans
+
+    def singleNumber(self, nums: List[int]) -> int:
+        low=0
+        high=0
+        for n in nums:
+            # 计数+1
+            carry=low&n
+            low^=n
+            high|=carry
+            # 如果计数等于 3，重置为 0
+            reset=low^high
+            low&=reset
+            high&=reset
+        return low
+    def singleNumber(self, nums):
+        seen_once, seen_twice = 0, 0
+        for num in nums:
+            seen_once = ~seen_twice & (seen_once ^ num)
+            seen_twice= ~seen_once & (seen_twice ^ num)
+
+        return seen_once
