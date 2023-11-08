@@ -2890,7 +2890,7 @@ class BiSearch:
         return False
 
 class GetPermutation:
-    # 获取所有排列组合
+    # 获取所有排列组合中的第k个
     def getPermutation(self, n, k):
         self.ans = []
 
@@ -2916,6 +2916,34 @@ class GetPermutation:
         for i in range(len(nums)):
             dfs(nums, visited, path, i, len(nums))
         return ''.join(self.ans[k-1])
+
+class GetPermutation:
+    # 第k个排列, 使用剪枝处理
+    def getPermutation(self, n, k):
+        def dfs(n, k, index, path):
+            if index==n:
+                return
+            cnt = factorial[n-1-index]
+            for i in range(1, n+1):
+                if visited[i]: continue
+                if cnt < k:
+                    k -= cnt
+                    continue
+                path.append(i)
+                visited[i] = True
+                dfs(n, k, index+1, path)
+                return
+        if n==0:
+            return ""
+
+        path = []
+        visited = [False] * n
+        factorial = [1] * n
+        for i in range(2, n+1):
+            factorial[i] = factorial[i-1] * i
+
+        dfs(n, k, 0, path)
+        return ''.join([str(num) for num in path])
 
 class LongestPalindromeSubseq:
     # 最长可能回文串
@@ -6913,3 +6941,21 @@ class SingleNumber:
             seen_twice= ~seen_once & (seen_twice ^ num)
 
         return seen_once
+
+class NthUglyNumber:
+    def nthUglyNumber(self, n: int, a: int, b: int, c: int) -> int:
+        i, j, k = 1, 1, 1
+        ans, cnt = None, 0
+        while cnt<n:
+            _min = min(a*i, b*j, c*k)
+            if _min == a*i:
+                i+=1
+            elif _min== b*j:
+                j+=1
+            else:
+                k += 1
+            if ans !=_min:
+                cnt += 1
+                ans = _min
+        return ans
+
