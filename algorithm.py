@@ -586,19 +586,23 @@ class MinPathSum:
 class longestPalindrome:
     # 最长回文子串
     def longestPalindrome(self, s):
-        maxlen, max_s = 0, ''
         n = len(s)
-        for i in range(1, n):
+        if n<=1:
+            return s
+        
+        maxlen, max_s = 0, ''
+        for i in range(n):
             left, right = i-1, i
             while right<n and s[right]==s[i]:
                 right += 1
 
-            while i>=0 and right<n and s[right]==s[left]:
+            while left>=0 and right<n and s[right]==s[left]:
                 left -= 1
                 right+= 1
 
             _maxlen = right-(left+1)
             if _maxlen>maxlen:
+                maxlen = _maxlen
                 max_s = s[left+1:right]
 
         return max_s
@@ -6959,3 +6963,17 @@ class NthUglyNumber:
                 ans = _min
         return ans
 
+class Solution:
+    def findLength(self, nums1, nums2):
+        m, n = len(nums1), len(nums2)
+        dp = [ [0]*(n+1) for _ in ragne(m+1) ]
+
+        ans = 0
+        for i in range(1, m+1):
+            for j in range(1, n+1):
+                if nums1[i-1]==nums2[j-1]:
+                    dp[i][j] = dp[i-1][j-1] + 1
+                    ans = max(dp[i][j], ans)
+                else:
+                    dp[i][j] = 0
+        return ans
