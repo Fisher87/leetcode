@@ -2993,10 +2993,10 @@ class Search:
             if nums[mid] == target:
                 return mid
             if nums[0]<=nums[mid]:
-                if nums[0]<target<nums[mid]:
-                    right = mid+1
+                if nums[0]<=target<nums[mid]:
+                    right = mid-1
                 else:
-                    left = mid-1
+                    left = mid+1
             else:  # nums[0]>nums[mid] 表明存在逆序
                 if nums[mid]<target<=nums[-1]:
                     left = mid+1
@@ -6977,3 +6977,5 @@ class Solution:
                 else:
                     dp[i][j] = 0
         return ans
+
+
