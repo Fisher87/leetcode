@@ -344,6 +344,8 @@ class FindMedianSortedArrays:
 class SpiralOrder:
     # 顺时针打印矩阵
     def spiralOrder(self, matrix):
+        if not matrix:
+            return []
         m, n = len(matrix), len(matrix[0])
         l, r, t, b = 0, n-1, 0, m-1
         ans = []
@@ -1107,6 +1109,7 @@ class FindNthDigit:
         num = start + index//d
         digitIndex = index % d
         return num // 10 ** (d-digitIndex-1) % 10
+        # return int(str(num)[digitIndex])
 
 class SpiralOrder:
     # 打印螺旋矩阵
@@ -2837,6 +2840,21 @@ class Codec:
             return ''
         return str(root.val) + ',' + self.serialize(root.left) + \
                 ',' + self.serialize(root.right)
+    def serializev2(self, root):
+        ans = []
+        if not root:
+            return '[]'
+        queue = deque([root])
+        while queue:
+            node = queue.popleft()
+            if node:
+                ans.append(str(node.val))
+                queue.append(node.left)
+                queue.append(node.right)
+            else:
+                ans.append('None')
+        return f"[{','.join(ans)}]"
+
     def deserialize(self, data):
         def dfs(datalist):
             value = datalist.pop(0)
@@ -2851,6 +2869,25 @@ class Codec:
         if not datalist:
             return None
         return dfs(datalist)
+
+    def deserializev2(self, data):
+        datalist = data[1:-1].split(',')
+        if len(datalist)<1 or not datalist[0]:
+            return None
+        root = TreeNode(int(datalist[0]))
+        queue = deque([root])
+        i = 1
+        while queue:
+            node = queue.popleft()
+            if datalist[i] != "None":
+                node.left = TreeNode(int(datalist[i]))
+                queue.append(node.left)
+            i += 1
+            if datalist[i] != "None":
+                node.right = TreeNode(int(datalist[i]))
+                queue.append(node.right)
+            i += 1
+        return root
 
 class ReverseBetween:
     def reverseBetween(self, head, left, right):
@@ -3691,7 +3728,6 @@ class Solution:
             return -1
         return res
 
-"""
 # Definition for a Node.
 class Node:
     def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):
@@ -3731,6 +3767,23 @@ class Solution:
             p = p.next
             
         return dummy.next
+
+    def copyRandomList(self, head):
+        if not head:
+            return head
+        cur = head
+        nodemap = dict()
+        while cur:
+            nodemap[cur] = Node(cur.val)
+            cur = cur.next
+        cur = head
+        while cur is not None:
+            nxt = nodemap.get(cur.next, None)
+            nodemap[cur].next = nxt
+            random = nodemap.get(cur.random, None)
+            nodemap[cur].random = random
+            cur = cur.next
+        return nodemap[head]
 
 class SumNumbers:
     def sumNumbers(self, root):
@@ -6978,4 +7031,49 @@ class Solution:
                     dp[i][j] = 0
         return ans
 
+class LargestMultipleOfThree:
+    # 能被3整除最大数
+    def largestMultipleOfThree(self, digits):
+        dct = [ 0 ] * 10
+        mct = [ 0 ] * 3
+        mv = defaultdict(list)
 
+        _sum = 0
+        for d in digits:
+            dct[d] += 1
+            mct[d%3] += 1
+            mv[d%3].append(d)
+            _sum += d
+
+        ans = ''
+        if _sum % 3 == 0:  # 所有数字和刚好能被3整除
+            for i in range(10):
+                ans += str(i)*dct[i]
+        elif _sum % 3 == 1:
+            if mct[1] >= 1:
+                d = sorted(mv[1])[0]  # 选择余数为1 的最小数
+                dct[d] -= 1
+                for i in range(10):
+                    ans += str(i)*dct[i]
+            elif mct[2] >= 2:
+                ds = sorted(mv[2])[:2]
+                for d in ds:
+                    dct[d] -= 1
+                for i in range(10):
+                    ans += str(i)*dct[i]
+        else:
+            if mct[2] >= 1:
+                d = sorted(mv[2])[0]
+                dct[d] -= 1
+                for i in range(10):
+                    ans += str(i)*dct[i]
+            elif mct[1] >= 2:
+                ds = sorted(mv[1])[2]
+                for d in ds:
+                    dct[d] -= 1
+                for i in range(10):
+                    ans += str(i)*dct[i]
+        temp = ans[::-1]
+        if temp and temp[0]=="0":
+            return "0"
+        return temp
