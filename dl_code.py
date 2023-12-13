@@ -320,3 +320,11 @@ class GLobalPointerLoss(nn.Module):
         neg_loss = torch.logsumexp(y_pred_neg, dim=-1)
         pos_loss = torch.logsumexp(y_pred_pos, dim=-1)
         return torch.mean(neg_loss + pos_loss)
+
+############################################################################################################
+
+# 在不关闭进程的情况下回收显存
+from accelerate.utils import release_memory
+def release(model)
+    model = model.to('cpu')
+    model = release_memory(model)
