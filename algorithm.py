@@ -1056,6 +1056,18 @@ class Sort:
 
         return nums
 
+    def base_sort(self, nums, radix=10):  # 基数排序
+        k = int(math.ceil(math.log(max(a), radix)))
+        bucket = [ [] for _ in range(radix) ]
+        for i in range(1, k+1):
+            for val in nums:
+                bucket[val%(radix**i)/(radix**(i-1))].append(val)
+            del nums[:]
+            for b in bucket:
+                nums.extend(b)
+            bucket = [ [] for _ in range(radix) ]
+        return nums
+
 class MaximalSquare:
     # 计算最大矩阵面积
     def maximalSquare(self, matrix):
@@ -2111,11 +2123,9 @@ class FindClosestElements:
         inx = bisect_left(nums, x)
         left,right = inx-1, inx
         for i in range(k):
-            if left<=0:
+            if left<0:
                 right += 1
-            elif right>=(n-1):
-                left -= 1
-            elif x-nums[left] <= nums[right]-x:
+            elif right>n or x-nums[left]<=nums[right]-x:
                 left -= 1
             else:
                 right += 1
@@ -2315,6 +2325,19 @@ class MinRefuelStops:
                 heappush(h, -stations[i][1])
                 prev = curr
         return ans
+    def minRefuelStops(self, target: int, startFuel: int, stations: List[List[int]]) -> int:
+        # 使用动态规划
+        n = len(stations)
+        dp = [0]*(n+1)   # dp[i] 表示加i次油最大的距离
+        dp[0] = startFuel
+        for i in range(n):
+            for j in range(i, -1, -1):
+                if dp[j] >= stations[i][0]:
+                    dp[j+1] = max(dp[j+1], dp[j]+stations[i][1])
+        for i in range(n+1):
+            if dp[i] >= target:
+                return i
+        return -1
 
 class SmallestRange:
     def smallestRange(self, nums):
@@ -7077,3 +7100,4 @@ class LargestMultipleOfThree:
         if temp and temp[0]=="0":
             return "0"
         return temp
+

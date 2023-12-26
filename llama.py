@@ -240,7 +240,7 @@ class LlamaAttention(nn.Module):
         if (self.num_heads * self.head_dim ) != self.hidden_size:
             raise ValueError()
         
-        self.q_proj = nn.Linear(self.hidden_size, self.head_num*self.head_dim, bias=False)
+        self.q_proj = nn.Linear(self.hidden_size, self.num_heads*self.head_dim, bias=False)
         self.k_proj = nn.Linear(self.hidden_size, self.num_key_value_heads*self.head_dim, bias=False)
         self.v_proj = nn.Linear(self.hidden_size, self.num_key_value_heads*self.head_dim, bias=False)
         self.o_proj = nn.Linear(self.num_heads*self.head_dim, self.hidden_size, bias=False)
@@ -288,8 +288,8 @@ class LlamaAttention(nn.Module):
             value_states = torch.cat(value_states, dim=-1)
 
         else:
-            query_states = self.q_proj(hidden_states)
-            key_states = self.k_proj(hidden_states)
+            query_states = self.q_proj(hidden_states)  # (bsz, q_len, self.num_heads*self.head_dim)
+            key_states = self.k_proj(hidden_states)    # (bsz, q_len, self.num_key_value_heads*self.head_dim)
             value_states = self.v_proj(hidden_states)
         query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
         key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
@@ -426,8 +426,8 @@ def repeat_kv(hidden_states, n_rep):
     hidden_states = hidden_states[:, :, None, :, :].expand(batch, num_key_value_heads, n_rep, slen, head_dim)
     return hidden_states.reshape(batch, num_key_value_heads*n_rep, slen, head_dim)
 
-def repeat_kv(hidden_states, n_rep):
-    return torch.repeat_interleave(hidden_states, n_rep, 1)
+# def repeat_kv(hidden_states, n_rep):
+#     return torch.repeat_interleave(hidden_states, n_rep, 1)
 
 class LlamaMLP(nn.Module):
     def __init__(self, config):
