@@ -2077,6 +2077,7 @@ class NextPermutation:
         
         k = n-1
         while (k>=j):
+            # 找出后面第一个大于i的位置, 并交换
             if nums[k]<=nums[i]:
                 k -= 1
             else:
@@ -7101,3 +7102,16 @@ class LargestMultipleOfThree:
             return "0"
         return temp
 
+class MaximumSwap(object):
+    def maximumswap(self, nums):
+        num_str = list(str(num))
+        length = len(num_str)
+        for i in range(length):
+            max_d, inx = num_str[i], i
+            for j in range(length-1, i, -1):
+                if num_str[j] > max_d:
+                    max_d, inx = num_str[j], j
+            if inx != i:
+                num_str[i], num_str[inx] = num_str[inx], num_str[i]
+                break
+        return int(''.join(num_str))
