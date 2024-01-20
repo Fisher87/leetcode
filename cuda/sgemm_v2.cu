@@ -58,6 +58,7 @@ __global__ void sgemm_v1(
         FLOAT4(r_load_a[0]) = FLOAT4(a[load_a_gmem_addr]);
         FLOAT4(r_load_b[0]) = FLOAT4(b[load_b_gmem_addr]);
 
+        // 转化为使用列存储方式;
         s_a[load_a_smem_k][load_a_smem_m] = r_load_a[0];
         s_a[load_a_smem_k + 1][load_a_smem_m] = r_load_a[1];
         s_a[load_a_smem_k + 2][load_a_smem_m] = r_load_a[2];
@@ -72,7 +73,33 @@ __global__ void sgemm_v1(
             FLOAT4(r_comp_a[4]) = FLOAT4(s_a[tk][ty*TM/2 + BM/2]);
             FLOAT4(r_comp_b[0]) = FLOAT4(s_b[tk][tx*TN/2]);
             FLOAT4(r_comp_b[4]) = FLOAT4(s_b[tk][tx*TN/2 + BN/2]);
+
+#pragma unroll
+            for (int tm=0; tm<TM; tm++) {
+#pragma unroll
+                for (int tn=0; tn<TN; tn++) {
+                    r_c[tm][tn] += r_comp_a[tm] * r_comp_b[tn];
+                }
+            }
         }
+        __syncthreads();
     }
 
+#pragma unroll
+    for(int i=0; i<TM/2; i++) {
+        int store_c_gmem_m = by*BM + ty*TM/2 + i ;
+        int store_c_gmem_n = bx*BN + tx*TN/2;
+        int store_c_gmem_addr = OFFSET(store_c_gmem_m, store_c_gmem_n, N);
+        FLOAT4(c[store_c_gmem_addr]) = FLOAT4(r_c[i][0]);
+        FLOAT4(c[store_c_gmem_addr + BN/2]) = FLOAT4(r_c[i][4]);
+    }
+
+#pragma unroll
+    for (int i=0; i<TM/2; i++) {
+        int store_c_gmem_m = by*BM + BM/2 + ty*TM/2 + i;
+        int store_c_gmem_n = bx*BN + tx * TN/2;
+        int store_c_gmem_addr = OFFSET(store_c_gmem_m, store_c_gmem_n, N);
+        FLOAT4(c[store_c_gmem_addr]) = FLOAT4(r_c[i + TM/2][0]);
+        FLOAT4(c[store_c_gmem_addr + BN/2]) = FLOAT4(r_c[i + TM/2][4]);
+    }
 }

@@ -328,3 +328,25 @@ from accelerate.utils import release_memory
 def release(model)
     model = model.to('cpu')
     model = release_memory(model)
+
+############################################################################################################
+
+# 在不加载模型参数权重的情况下查看模型结构信息
+from accelerate.utils import get_balanced_memory, infer_auto_device_map, find_tied_parameters
+from accelerate import init_empty_weights, load_checkpoint_and_dispatch
+from accelerate import dispatch_model
+from transformers import AutoTokenizer, AutoModel, AutoConfig
+
+## 正常加载方式，会消耗显存
+# model = AutoModelForCausalLM.from_pretrained(
+#     pretrained_model_name_or_path=model_path,
+#     load_in_8bit=True,
+#     torch_dtype=torch.float16,
+#     device_map='auto',
+#     max_memory=None,
+#     trust_remote_code=True)
+
+# 不消耗显存
+mconfig = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+with init_empty_weights():
+    model = AutoModelForCausalLM.from_config(mconfig, trust_remote_code=True)

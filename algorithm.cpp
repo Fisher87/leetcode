@@ -344,3 +344,201 @@ public:
     }
 };
 
+class LargestRectangArea {
+public:
+    int largestRectangleArea(vector<int> & heights) {
+        int n = heights.size();
+        vector<int> left(n), right(n);
+
+        stack<int> mono_stack;
+        for (int i=0; i<n; ++i) {
+            while (!mono_stack.empty() && heights[mono_stack.top()] >= heights[i]) {
+                mono_stack.pop();
+            }
+            left[i] = (mono_stack.empty() ? -1 : mono_stack.top());
+            mono_stack.push(i);
+        }
+
+        mono_stack = stack<int>();
+        for(int i=n-1; i>=0; --i) {
+            while (!mono_stack.empty() && heights[mono_stask.top()] >= heights[i]) {
+                mono_stack.pop();
+            }
+            right[i] = (mono_stack.empty() ? n : mono_stack.top());
+            mono_stack.push(i);
+        }
+
+        int ans = 0;
+        for(int i=0; i<n; ++i) {
+            ans = max(ans, (right[i]-left[i]-1) * heights[i]);
+        }
+    }
+
+};
+
+/*
+ * 组合数
+ */
+class Permutation{
+public:
+    vector<string> rec;
+    vector<int> vis;
+    void backtrack(const string& s, int i, int n, string& perm) {
+        if (i == n) {
+            rec.push_back(perm);
+            return;
+        }
+        for (int j = 0; j < n; j++) {
+            if (vis[j] || (j > 0 && !vis[j - 1] && s[j - 1] == s[j])) {
+                continue;
+            }
+            vis[j] = true;
+            perm.push_back(s[j]);
+            backtrack(s, i + 1, n, perm);
+            perm.pop_back();
+            vis[j] = false;
+        }
+    }
+
+    vector<string> permutation(string s) {
+        int n = s.size();
+        vis.resize(n);
+        sort(s.begin(), s.end());
+        string perm;
+        backtrack(s, 0, n, perm);
+        return rec;
+    }
+};
+
+/*
+ * 三数之和为0
+ */
+class ThreeSum{
+public:
+    vector<vector<int>> threeSum(vector<int>& nums) {
+        int n = nums.size();
+        sort(nums.begin(), nums.end());
+        vector< vector<int> > ans;
+
+        for (int i=0; i<n; i++) {
+            if (i>0 && nums[i]==nums[i-1]) continue;
+            int k = n-1;
+            int target = -nums[i];
+
+            for (int j=i+1; j<n; j++) {
+                if (j>i+1 && nums[j]==nums[j-1]) continue;
+
+                while (j<k && nums[j]+nums[k] > target) {
+                    --k;
+                }
+                if (j==k) break;
+
+                if (nums[j]+nums[k]==target){
+                    ans.push_back({nums[i], nums[j], nums[k]});
+                }
+            }
+        }
+        return ans;
+    }
+};
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode():val(0), left(nullptr), right(nullptr) {}
+    TreeNode(int x): val(x), left(nullptr), right(nullptr) {}
+    TreeNode(int x, TreeNode *left, TreeNode *right): val(x), left(left), right(right) {}
+};
+/* 前序与中序构建二叉树  */
+class BuildTree{
+public:
+    TreeNode* buildTree(vector<int>& preorder, vector<int>& inorder) {
+        if (!preorder.size()) {
+            return nullptr;
+        }
+        TreeNode* root = new TreeNode(preorder[0]);
+        stack<TreeNode*> stk;
+        stk.push(root);
+        int inorderIndex = 0;
+        for (int i=1; i<preorder.size(); ++i) {
+            int preorderVal = preorder[i];
+            TreeNode* node = stk.top();
+            if (node->val != inorder[inorderIndex]) {
+                node->left = new TreeNode(preorderVal);
+                stk.push(node->left);
+            } else {
+                while (!stk.empty() && stk.top()->val==inorder[inorderIndex]) {
+                    node = stk.top();
+                    stk.pop();
+                    ++inorderIndex;
+                }
+                node->right = new TreeNode(preorderVal);
+                stk.push(node->right);
+            }
+        }
+        return root;
+    }
+};
+
+/* 排序链表 */
+class SortList {
+public:
+    ListNode* sortlist(ListNode* head) {
+        if (!head || !head->next) {
+            return head;
+        }
+
+        ListNode *slow = head, *fast = head;
+        while(fast->next && fast->next->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        fast = slow;
+        slow = slow->next;
+        fast->next = nullptr;
+
+        return mergeTwoLists(sortlist(head), sortlist(slow));
+    }
+
+    ListNode* merge(ListNode *l1, ListNode *l2) {
+        ListNode dummynode{0};
+        auto curr = &dummynode;
+
+        while (l1 && l2) {
+            if (l1->val <= l2->val) {
+                curr->next = l1;
+                l1 = l1->next;
+            } else {
+                curr->next = l2;
+                l2 = l2->next;
+            }
+            curr = curr->next;
+        }
+        curr->next = l1 ? l1 : l2;
+
+        return dummynode.next;
+    }
+};
+
+class MaxSlidingWindow{
+public:
+    maxslidingWindow(vector<int>& nums, int k) {
+        vector<int> result;
+        deque<int> dq;
+        for(int i=0; i<nums.size(); i++) {
+            if (!dq.empyt() && i-dq.front()>=k) {
+                dq.pop_front();
+            }
+            while(!dq.empty() && nums[dq.back()]<=nums[i]) {
+                dq.pop_back();
+            }
+            dq.emplace_back(i);
+            if (i>=k-1) {
+                result.emplace_back(nums[dq.front()]);
+            }
+        }
+        return result;
+    }
+
+};

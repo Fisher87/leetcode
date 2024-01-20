@@ -568,6 +568,24 @@ class FindDuplicate:
 
         return fast
 
+class FindDuplicates:
+    # 数组中的重复数据
+    def findduplicates(self, nums):
+        for i in range(len(nums)):
+            while nums[i] != nums[nums[i]-1]:
+                nums[nums[i]-1], nums[i] = nums[i], nums[nums[i]-1]
+        return [num for i,num in enumerate(nums) if num!=(i+1)]
+
+    def findduplicates(self, nums):
+        ans = []
+        for num in nums:
+            x = abs(num)
+            if nums[x-1] > 0:
+                nums[x-1] = -num[x-1]
+            else:
+                ans.append(x)
+        return ans
+
 class MinPathSum:
     # 最小路径和
     def minPathSum(self, grid):
@@ -7115,3 +7133,18 @@ class MaximumSwap(object):
                 num_str[i], num_str[inx] = num_str[inx], num_str[i]
                 break
         return int(''.join(num_str))
+
+class OnlineSoftmax:
+    def online_softmax(self, nums):
+        pre_max = -(float('inf'))
+        _sum = 0.0
+        for i in range(len(nums)):
+            new_max = max(pre_max, nums[i])
+            _sum  = _sum * math.exp(pre_max-new_max) + math.exp(nums[i]-new_max)
+            old_max = new_max
+
+        dst = []
+        for i in range(len(nums)):
+            dst.append(math.exp( nums[i]-old_max) / _sum )
+        return dst
+
