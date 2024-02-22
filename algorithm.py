@@ -7148,3 +7148,29 @@ class OnlineSoftmax:
             dst.append(math.exp( nums[i]-old_max) / _sum )
         return dst
 
+# 类消消乐字符串消除, 删除3个及以上相同字符
+# 'aabbbac -> c,  abbbaac -> c'
+class CharElimination:
+    def charelimination(self, s):
+        n = len(s)
+        if n<=2:
+            return s
+        stack = [(s[0], 1)]
+        i = 1
+        while i<n:
+            c = s[i]
+            if c == stack[-1][0]:
+                count = stack[-1][-1] + 1
+                stack.append((c, count))
+                i += 1
+                continue
+
+            if stack[-1][-1]>=3:
+                for j in range(stack[-1][-1]):
+                    stack.pop()
+
+            if not stack or c!=stack[-1][0]:
+                stack.append((c, 1))
+                i += 1
+
+        return ''.join([_[0] for _ in stack])

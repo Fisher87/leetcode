@@ -5,7 +5,11 @@
 *   创 建 者：YuLianghua
 *   创建日期：2023年08月01日
 *   描    述：
-*
+*  deque< int > 双向队列
+*  queue< int > 队列
+*  vector< int > 数组
+*  priority_queue< int > 升序队列
+*  unordered_map< string, string > 字典
 ================================================================*/
 #include <iostream>
 #include <string>
@@ -541,4 +545,1302 @@ public:
         return result;
     }
 
+};
+
+// 判断括号是否有效
+class IsValid{
+public: 
+    bool isValid(string s) {
+        unordered_map<char, int> m{ {'(', 1}, {'[', 2}, {'{', 3} 
+                                    {')', 4}, {']', 5}, {'}', 6}};
+        stack<char> st;
+        bool istrue = false;
+
+        for (char c:s) {
+            int flag = m[c];
+            if (flag>=1 && flag<=3) {
+                st.push(c);
+            } else if (!=st.empty() && m[st.top()]==flag-3) {
+                st.pop();
+            } else {
+                istrue = false;
+                break;
+            }
+        }
+        if (!st.empty()) {
+            istrue = false;
+        }
+        return istrue;
+    }
+};
+
+// 最多元素;
+class MajorityElement {
+public:
+    int majorityElement(vector<int>& nums) {
+        int ele = nums[0];
+        int cnt = 1;
+        for (int i=1; i<nums.size(); i++) {
+            if (cnt==0) {
+                ele = nums[i];
+                cnt = 1;
+                continue;
+            }
+            if (nums[i]==ele) {
+                ++cnt;
+            } else {
+                --cnt;
+            }
+        }
+        return ele;
+    }
+};
+
+// 最长回文子串
+class LongestPalidrome{
+    public:
+        string longestPalidrome(string s) {
+           int n = s.size(); 
+           if (n<=1) return s;
+           int maxlen=0;
+           string maxstr = "";
+           for(int i=0; i<n; ++i) {
+               int left=i-1, right=i;
+               while(right<n && s[right]==s[i]) {
+                   right++;
+               } 
+               while(left>=0 && right<n && s[left]==s[right]) {
+                   left--;
+                   right++;
+               }
+               int _len = right-(left+1);
+               if (_len > maxlen) {
+                   maxlen = _len;
+                   maxstr = s.substr(left+1, right-(left+1));
+               }
+           }
+
+           return maxstr;
+        }
+};
+
+// 路径数
+class UniquePathsWithObstacles {
+public:
+    int uniquePathsWithObstacles(std::vector<std::vector<int>>& obstacleGrid) {
+        int m = obstacleGrid.size();
+        int n = obstacleGrid[0].size();
+
+        vector< vector<int> > dp(m, vector<int>(n, 0));
+        dp[0][0] = (obstacleGrid[0][0]==1) ? 0 : 1;
+
+        for(int i=1; i<m; ++i) {
+            dp[i][0] = (obstacleGrid[i][0]==1) ? 0 : dp[i-1][0];
+        }
+
+        for (int j=1; j<n; ++j) {
+            dp[0][j] = (obstacleGrid[0][j]==1) ? 0 : dp[0][j-1];
+        }
+
+        for(int i=1; i<m; i++) {
+            for (int j=1; j<n; j++) {
+                if (obstacleGrid[i][j]==1) {
+                    dp[i][j] = 0;
+                } else {
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];
+                }
+            }
+        }
+
+        return dp[m-1][n-1];
+    }
+};
+
+
+// LRU cache
+#include <iostream>
+#include <unordered_map>
+
+class DLinkedNode {
+public:
+    int key;
+    int value;
+    DLinkedNode* prev;
+    DLinkedNode* next;
+    
+    DLinkedNode(int _key=0, int _value=0) : key(_key), value(_value), prev(nullptr), next(nullptr) {}
+};
+
+class LRUCache {
+private:
+    std::unordered_map<int, DLinkedNode*> cache;
+    DLinkedNode* head;
+    DLinkedNode* tail;
+    int capacity;
+    int size;
+
+public:
+    LRUCache(int _capacity) : capacity(_capacity), size(0) {
+        head = new DLinkedNode();
+        tail = new DLinkedNode();
+        head->next = tail;
+        tail->prev = head;
+    }
+
+    ~LRUCache() {
+        for (auto it = cache.begin(); it != cache.end(); ++it) {
+            delete it->second;
+        }
+        delete head;
+        delete tail;
+    }
+
+    int get(int key) {
+        if (cache.find(key) == cache.end()) {
+            return -1;
+        }
+
+        DLinkedNode* node = cache[key];
+        moveToHead(node);
+        return node->value;
+    }
+
+    void put(int key, int value) {
+        if (cache.find(key) == cache.end()) {
+            // 如果 key 不存在，创建一个新的节点
+            DLinkedNode* node = new DLinkedNode(key, value);
+            // 添加进哈希表
+            cache[key] = node;
+            // 添加至双向链表的头部
+            addToHead(node);
+            size++;
+            if (size > capacity) {
+                // 如果超出容量，删除双向链表的尾部节点
+                DLinkedNode* removed = removeTail();
+                // 删除哈希表中对应的项
+                cache.erase(removed->key);
+                size--;
+                delete removed;
+            }
+        } else {
+            // 如果 key 存在，先通过哈希表定位，再修改 value，并移到头部
+            DLinkedNode* node = cache[key];
+            node->value = value;
+            moveToHead(node);
+        }
+    }
+
+private:
+    void addToHead(DLinkedNode* node) {
+        node->prev = head;
+        node->next = head->next;
+        head->next->prev = node;
+        head->next = node;
+    }
+
+    void removeNode(DLinkedNode* node) {
+        node->prev->next = node->next;
+        node->next->prev = node->prev;
+    }
+
+    void moveToHead(DLinkedNode* node) {
+        removeNode(node);
+        addToHead(node);
+    }
+
+    DLinkedNode* removeTail() {
+        DLinkedNode* node = tail->prev;
+        removeNode(node);
+        return node;
+    }
+};
+
+
+// 排序算法
+class SortArray {
+public:
+    vector<int> heapSort(vector<int>& nums) {
+        heapsort(nums);
+        return nums;
+    }
+
+    vector<int> quickSort(vector<int>& nums) {
+        quick_sort(nums, 0, nums.size()-1);
+        return nums;
+    }
+
+    vector<int> mergeSort(vector<int>& nums) {
+        mergesort(nums, 0, nums.size()-1);
+        return nums;
+    }
+
+private:
+    // begin heap sort
+    void heapsort(vector<int>& nums) {
+        int n = nums.size();
+        for (int i=n/2-1; i>=0; i--) {
+            buildHeap(i, n, nums);
+        }
+
+        // heap sort
+        for (int i=n-1; i>0; i--){
+            swap(nums[0], nums[i]);
+            buildHeap(0, i, nums);
+        }
+    }
+
+    void buildHeap(int i, int size, vector<int>& nums){
+        int largest = i;
+        int left = 2*i+1;
+        int right = 2*i+2;
+        if (left < size && nums[left]>nums[largest]) {
+            largest = left;
+        }
+        if (right< size && nums[right]>nums[largest]) {
+            largest = right;
+        }
+
+        if (largest != i) {
+            std::swap(nums[i], nums[largest]);
+            buildHeap(largest, size, nums);
+        }
+    }
+    // end heap sort
+
+    // begin quick sort
+    void quicksort(vector<int>& nums, int left, int right) {
+        if (left>=right) {
+            return ;
+        }
+        int pivot = partition(nums, left, right);
+        quicksort(nums, left, pivot-1);
+        quicksort(nums, pivot+1, right);
+    }
+    int partition(vector<int>& nums, int left, int right) {
+        int pivotIndex = rand() % (right-left+1) + left;
+        std::swap(nums[pivotIndex], nums[right]);
+
+        int i=left;
+        for (int j=left; j<right; ++j) {
+            if (nums[j] < nums[right]) {
+                std::swap(nums[i], nums[j]);
+                i++;
+            }
+        }
+        std::swap(nums[i], nums[right]);
+        return i;
+    }
+    // end quick sort
+    
+    // begin merge sort
+    void mergesort(vector<int>& nums, int left, int right) {
+        if (left>=right) {
+            return;
+        }
+        int mid = left + (right-left)/2;
+        mergesort(nums, left, mid);
+        mergesort(nums, mid+1, right);
+        int i=left, j=mid+1;
+        std::vector<int> tmp;
+        while(i<=mid || j<=right) {
+            if (i>mid || (j<=right && nums[i]<nums[j])) {
+                tmp.push_back(nums[j]);
+                j++;
+            } else {
+                tmp.push_back(nums[i]);
+                i++;
+            }
+        }
+
+        for (int k=left; k<=right; k++) {
+            nums[k] = tmp[k-left];
+        }
+    }
+    // end merge sort
+};
+
+// 相交链表节点
+class GetIntersectionNode {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        if (headA==nullptr || headB==nullptr) {
+            return nullptr;
+        }
+        ListNode* p = headA;
+        ListNode* q = headB;
+        while (p!=q) {
+            p = p ? p->next : headB;
+            q = q ? q->next : headA;
+        }
+        return p;
+    }
+};
+
+
+// 路径和 II
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    vector<vector<int>> pathSum(TreeNode* root, int targetSum) {
+        ans.clear();
+        vector<int> path;
+        dfs(root, target, path, ans);
+        return ans;
+    }
+private:
+    vector< vector<int> > ans;
+    void dfs(TreeNode* root, int target, vector<int>& path, vector< vector<int> >& ans) {
+        if (root==nullptr) {
+            return;
+        }
+        if (root->left==nullptr && root->right==nullptr && target==root->val) {
+                path.push_back(root->val);
+                ans.push_back(path);
+                path.pop_back(root->val);
+                return ;
+            }
+        }
+        path.push_back(root->val);
+        dfs(root->left, target-root->val, path, ans);
+        dfs(root->right, target-root->val, path, ans);
+        path.pop_back();
+    }
+};
+
+
+// 实现trie 前缀树
+class Trie {
+private:
+    bool isWord;
+    std::unordered_map<char, Trie*> children;
+
+public:
+    Trie() : isWord(false) {}
+
+    void insert(const std::string& word) {
+        Trie* node = this;
+        for (char w : word) {
+            if (node->children.find(w) == node->children.end()) {
+                node->children[w] = new Trie();
+            }
+            node = node->children[w];
+        }
+        node->isWord = true;
+    }
+
+    Trie* searchPrefix(const std::string& prefix) {
+        Trie* node = this;
+        for (char w : prefix) {
+            if (node->children.find(w) == node->children.end()) {
+                return nullptr;
+            }
+            node = node->children[w];
+        }
+        return node;
+    }
+
+    bool search(const std::string& word) {
+        Trie* node = searchPrefix(word);
+        return node != nullptr && node->isWord;
+    }
+
+    bool startsWith(const std::string& prefix) {
+        Trie* node = searchPrefix(prefix);
+        return node != nullptr;
+    }
+
+    // Destructor to deallocate memory
+    ~Trie() {
+        for (auto& child : children) {
+            delete child.second;
+        }
+    }
+};
+
+// 对称二叉树
+class Solution {
+public:
+    bool isSymmetric(TreeNode* root) {
+        if(root == nullptr) {
+            return true;
+        }
+        return check(root->left, root->right);
+    }
+private:
+    bool check(TreeNode* left, TreeNode* right) {
+        if (left==nullptr && right==nullptr) { return true; } 
+        if (left==nullptr || right==nullptr) { return false;}
+
+        if (left->val!=right->val) {
+            return false;
+        } else {
+            return check(left->right, right->left) && check(left->left, right->right);
+        }
+    }
+};
+
+// 编辑距离
+class EditDistance {
+public:
+    int editDistance(string word1, string word2) {
+        int m=word1.size(), n=word2.size();
+        if (m==0 || n==0) {
+            return m ? n==0 : n ;
+        }
+
+        vector< vector<int> > dp(m+1, vector<int>(n+1));
+        for (int i=0; i<m+1; i++) {
+            dp[i][0] = i;
+        }
+        for (int j=0; j<n+1; j++) {
+            dp[0][j] = j;
+        }
+
+        for (int i=1; i<m+1; i++) {
+            for (int j=1; j<n+1; j++) {
+                if (word1[i-1]==word2[j-1]) {
+                    dp[i][j] = dp[i-1][j-1];
+                } else {
+                    dp[i][j] = min( dp[i][j-1], min(dp[i-1][j], dp[i-1][j-1]) ) + 1;
+                }
+            }
+        }
+        return dp[m][n];
+    }
+
+};
+
+// 全排列
+class Permute {
+public:
+    vector<vector<int>> permute(vector<int>& nums) {
+        ans.clear();
+        int size = nums.size();
+        vector< bool > visited(size);
+        vector<int> path;
+        backtrack(nums, path, 0, size, visited);
+        return ans;
+    }
+private:
+    vector< vector<int> > ans;
+    void backtrack(vector<int>& nums, vector<int>& path, int depth, int size, vector<bool>& visited){
+        if(depth==size){
+            ans.push_back(path);
+            return ;
+        }
+        for (int i=0; i<size; i++) {
+            if (visited[i]) {
+                continue;
+            }
+            path.push_back(nums[i]);
+            visited[i] = true;
+            backtrack(nums, path, depth+1, size, visited);
+            visited[i] = false;
+            path.pop_back();
+        }
+    }
+};
+
+// 最大子数和
+class MaxSubArray {
+public:
+    int maxSubArray(vector<int>& nums) {
+        int presum = nums[0];
+        int maxsum = nums[0];
+        for (int i=1; i<nums.size(); i++) {
+            presum = max(presum+nums[i], nums[i]);
+            maxsum = max(presum, maxsum);
+        }
+        return maxsum;
+    }
+};
+
+// 验证二叉搜索树 
+class IsValidBST {
+public:
+    bool isValidBST(TreeNode* root) {
+        return isvalid(root, LONG_MIN, LONG_MAX);
+    }
+private:
+    bool isvalid(TreeNode* root, long long low, long long high) {
+        if (root == nullptr) {
+            return true;
+        }
+        if (root->val > low && root->val < high) {
+            return isvalid(root->left, low, root->val) && isvalid(root->right, root->val, high);
+        }
+        return false;
+    }
+};
+
+// 二叉树层序遍历 
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        ans.clear();
+        stack.clear();
+        if (root==nullptr) {
+            return ans;
+        }
+        stack.emplace_back(root);
+        while (!stack.empty()) {
+            vector<int> tmp;
+            int size = stack.size();
+            for (int i=0; i<size; i++) {
+                TreeNode* node = stack.front();
+                stack.pop_front();
+                tmp.push_back(node->val);
+                if (node->left!=nullptr) {
+                    stack.emplace_back(node->left);
+                }
+                if (node->right!=nullptr) {
+                    stack.emplace_back(node->right);
+                }
+            }
+            ans.push_back(tmp);
+        }
+        return ans;
+    }
+private:
+    deque<TreeNode*> stack;
+    vector< vector<int> > ans;
+};
+
+// 数组中第k个最大元素
+class FindKthLargest {
+private:
+    void maxHeapify(vector<int>& nums, int i, int size) {
+        int left = 2*i + 1;
+        int right = 2*i + 2;
+        int largest = i;
+        if (left<size && nums[largest]<nums[left]) {
+            largest = left;
+        }
+        if (right<size && nums[largest]<nums[right]) {
+            largest = right;
+        }
+        if (largest != i) {
+            swap(nums[largest], nums[i]);
+            maxHeapify(nums, largest, size);
+        }
+    }
+
+    void buildHeap(vector<int>& nums, int size) {
+        for (int i=size/2; i>=0; i--) {
+            maxHeapify(nums, i, size);
+        }
+    }
+
+public:
+    int findKthLargest(vector<int>& nums, int k) {
+        int n = nums.size();
+        buildHeap(nums, n);
+        
+        for (int i=n-1; i>=(n-1-k); i++) {
+            swap(nums[0], nums[i]);
+            maxHeapify(nums, 0, i);
+        }
+        return nums[0];
+    }
+
+    int findKthLargestv1(vector<int>& nums, int k) {
+        std::priority_queue<int, vector<int>, std::greater<int> > minheap; // 使用优先队列
+        for (i=0; i<k; i++) {
+            minheap.push(nums[i]);
+        }
+
+        for(size_t i=k; i<nums.size(); i++) {
+            int kth = minheap.top();
+            int _kth= kth>nums[i] ? kth : mins[i];
+            minheap.pop();
+            minheap.push(_kth);
+        }
+        return minheap.top();
+    }
+
+    int findKthLargest2(vector<int>& nums, int k) {
+        make_heap(nums.begin(), nums.end()); // 创建堆
+        for(int i =0;i<k-1;i++){
+            pop_heap(nums.begin(),nums.end());
+            nums.pop_back();
+        }
+        return nums[0];
+    }
+};
+
+// 判断是否是回文链表
+class IsPalindromeList {
+public:
+    bool isPalindrome(ListNode* head) {
+        int size = 0;
+        ListNode* cur = head;
+        while(cur!=nullptr) {
+            cur = cur->next;
+            size++;
+        }
+        if (size<=1) {
+            return true;
+        }
+        ListNode* slow = head;
+        ListNode* fast = head->next;
+        while (fast!=nullptr && fast->next!=nullptr) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        std::cout << slow->val << endl;
+        ListNode* _l1 = head;
+        ListNode* l2 = slow->next;
+        slow->next = nullptr;
+        ListNode* l1 = reverseList(_l1);
+        if ((size)%2) {
+            l1 = l1->next;
+        }
+        while (l1!=nullptr && l2!=nullptr) {
+            if (l1->val != l2->val) {
+                return false;
+            } else {
+                l1 = l1->next;
+                l2 = l2->next;
+            }
+        }
+        return true;
+    }
+private:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* pre = nullptr;
+        ListNode* cur = head;
+        while (cur!=nullptr) {
+            ListNode* next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+};
+
+// Z 打印
+class zigzagLevelOrder{
+public:
+    vector<vector<int>> zigzagLevelOrder(TreeNode* root) {
+        if(root==nullptr){
+            return ans;
+        }
+        queue<TreeNode*> dq;
+        dq.push(root);
+        bool l2r = true;
+        while(!dq.empty()){
+            size_t size = dq.size();
+            vector<int> tmp;
+            for(int i=0; i<size; i++) {
+                TreeNode* node = dq.front();
+                tmp.push_back(node->val);
+                if(node->left!=nullptr) {
+                    dq.push(node->left);
+                }
+                if(node->right!=nullptr) {
+                    dq.push(node->right);
+                }
+                dq.pop();
+            }
+            if(not l2r){
+                std::reverse(tmp.begin(), tmp.end());
+            }
+            l2r = !l2r;
+            ans.push_back(tmp);
+        }
+        return ans;
+    }
+private:
+    vector<vector<int>> ans;
+};
+
+// 最近公共祖先
+class LowestCommonAncestor {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        bool ret = check(root, p, q);
+        return ans
+    }
+private:
+    TreeNode* ancestor;
+    bool check(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (root == nullptr) {
+            return false;
+        }
+        bool flag1 = check(root->left, p, q);
+        bool flag2 = check(root->right, p, q);
+        bool flag3 = ((root==p) || (root==q));
+        if ((flag1&&flag2) || (flag1||flag2) && flag3) {
+            ans = root;
+        }
+        if (flag1 || flag2 || flag3) {
+            return true;
+        } 
+        return false;
+    }
+};
+
+// 岛屿数量
+class NumIsland {
+public:
+    int numIslands(vector<vector<char>>& grid) {
+        size_t m = grid.size();
+        size_t n = grid[0].size();
+        int ans = 0;
+        for (size_t i=0; i<m; i++) {
+            for (size_t j=0; j<n; j++) {
+                if (grid[i][j]=='1') {
+                    ans++;
+                    dfs(grid, i, j, m, n);
+                }
+            }
+        }
+        return ans;
+    }
+
+private:
+    void dfs(vector<vector<char>>& grid, int i, int j, int m, int n) {
+        if (i<0 || i>=m || j<0 || j>=n) {
+            return ;
+        } 
+        if (grid[i][j]!='1') {
+            return ;
+        } 
+        grid[i][j] = '2';
+        for (auto& [di,dj] : directs) {
+            size_t _i = i+di;
+            size_t _j = j+dj;
+            dfs(grid, _i, _j, m, n);
+        }
+
+    }
+    vector<pair<int, int>> directs{{1, 0}, {-1, 0}, {0, 1}, {0, -1}};
+};
+
+// 最长上升子序列 
+class LengthOfLIS {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        size_t n = nums.size();
+        vector<int>::iterator ans;
+        vector<int> dp(n, 1);
+        for (size_t i=1; i<n; i++) {
+            for (size_t j=0; j<i; j++) {
+                if (nums[i]>nums[j]) {
+                    dp[i] = max(dp[i], dp[j]+1);
+                }
+            }
+        }
+        ans = max_element(dp.begin(), dp.end());
+        // auto ans = max_element(dp.begin(), dp.end());
+        return *ans;
+    }
+};
+
+// 搜索旋转排序数组
+class Search {
+public:
+    int search(vector<int>& nums, int target) {
+        size_t n = nums.size();
+        int left=0, right=n-1;
+        while (left<=right) {
+            size_t mid = (left+right)/2;
+            if (nums[mid]==target) {
+                return mid;
+            }
+            // 总结一点：找到绝对递增的部分
+            if (nums[0]<=nums[mid]) {
+                if(nums[mid]>target && target>=nums[0]) {
+                    right = mid-1;
+                } else {
+                    left = mid+1;
+                }
+            } else {
+                if (nums[mid]<target && target<=nums[n-1]) {
+                    left = mid+1;
+                } else {
+                    right= mid-1;
+                }
+            }
+        }
+        return -1;
+    }
+};
+
+// x 的平方根
+class MySqrt {
+public:
+    int mySqrt(int x) {
+        int left = 0;
+        int right= x;
+        while (left <= right) {
+            int mid = (left+right)/2;
+            if (mid*mid<=x && (mid+1)*(mid+1)>x) {
+                return mid;
+            } else if (mid*mid > x){
+                right = mid-1;
+            } else {
+                left = mid+1;
+            }
+        }
+        return left+1;
+    }
+};
+
+// 无重复字符最长子串
+class LengthOfLongestSubstring{
+public:
+    int lengthOfLongestSubstring(string s) {
+        deque<char> window;
+        int maxlen = 0;
+        for(auto c: s) {
+            while(std::find(window.begin(), window.end(), c)!=window.end()){
+                window.pop_front();
+            }
+            window.push_back(c);
+            maxlen = max(maxlen, int(window.size()));
+        }
+        return maxlen;
+    }
+};
+
+// 合并K个升序链表
+/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class MergeKLists {
+public:
+    ListNode* mergeKLists(vector<ListNode*>& lists) {
+        auto compare = [](const std::pair<int, int>&a, const std::pair<int, int>& b) {
+            return a.first > b.first;
+        };
+        std::priority_queue< std::pair<int, int>, std::vector<std::pair<int, int>>, decltype(compare) > pq;
+        for(int i=0; i<lists.size(); i++) {
+            if (lists[i]!=nullptr) {
+                pq.push({lists[i]->val, i});
+            }
+        }
+        ListNode* dummynode = new ListNode(-1);
+        ListNode* cur = dummynode;
+        while (!pq.empty()) {
+            auto [val, idx] = pq.top();
+            pq.pop();
+            cur->next = lists[idx];
+            cur = cur->next;
+            lists[idx] = lists[idx]->next;
+
+            if (lists[idx] != nullptr) {
+                pq.push({lists[idx]->val, idx});
+            }
+        }
+        ans = dummynode->next;
+        delete dummynode;
+
+        return ans;
+    }
+private:
+    ListNode* ans;
+};
+
+// 查找两个正序数组中位数
+class FindMedianSortedArrays {
+public:
+    double findMedianSortedArrays(vector<int>& nums1, vector<int>& nums2) {
+        int m=num1.size(), n=nums2.size();
+        if ((m+n)%2) {
+            int mid_k = (m+n)/2 + 1;
+            ans = get_k(nums1, nums2, mid_k);
+        } else {
+            int mid_l = (m+n)/2;
+            int mid_r = (m+n)/2 + 1;
+            ans = (get_k(nums1, nums2, mid_l)+get_k(nums1, nums2, mid_r)) * 0.5;
+        }
+        return ans;
+    }
+
+private:
+    double get_k(vector<int>& nums1, vector<int>& nums2, int k) {
+        int index1 = 0;
+        int index2 = 0;
+        while (true) {
+            if (index1==nums1.size()) {
+                return nums2[index2+k-1];
+            } else if (index2==nums2.size()) {
+                return nums1[index1+k-1];
+            } else if (k==1) {
+                return std::min(nums1[index1], nums2[index2]);
+            }
+
+            int _index1 = min(index1+k/2-1, int(nums1.size()-1));
+            int _index2 = min(index2+k/2-1, int(nums2.size()-1));
+            if (nums1[_index1] <= nums2[_index2]) {
+                k = k - (_index1-index1+1);
+                index1 = _index1+1;
+            } else {
+                k = k - (_index2-index2+1);
+                index2 = _index2+1;
+            }
+        }
+    }
+    double ans ;
+};
+
+// 螺旋遍历二维数组
+class SpiralArray {
+public:
+    vector<int> spiralArray(vector<vector<int>>& array) {
+        if (array.empty()) {
+            return vector<int> {};
+        }
+        int m = array.size(); 
+        int n = array[0].size();
+        int left=0, right=n-1, top=0, bottom=m-1;
+        int total_count = m*n, count = 0;
+        vector<int> ans;
+        while (count < total_count) {
+            if(left>right) { break; }
+            for (int i=left; i<=right; i++) {
+                ans.push_back(array[top][i]);
+                count++;
+            }
+            top++;
+
+            if(top > bottom) { break; }
+            for (int i=top; i<=bottom; i++) {
+                ans.push_back(array[i][right]);
+                count++;
+            }
+            right--;
+
+            if (right<left) { break; }
+            for(int i=right; i>=left; i--) {
+                ans.push_back(array[bottom][i]);
+                count++;
+            }
+            bottom--;
+
+            if (bottom<top) { break; }
+            for(int i=bottom; i>=top; i--) {
+                ans.push_back(array[i][left]);
+                count++;
+            }
+            left++;
+        }
+        return ans;
+    }
+};
+
+// 最大岛屿面积
+class MaxAreaOfIsland {
+public:
+    int maxAreaOfIsland(vector<vector<int>>& grid) {
+        int maxarea=0;
+        int m=grid.size();
+        int n=grid[0].size();
+
+        for (int i=0; i<m; i++) {
+            for (int j=0; j<n; j++) {
+                if (grid[i][j]==1) {
+                    int ans = dfs(grid, i, j, m, n);
+                    maxarea = max(ans, maxarea);
+                }
+            }
+        }
+        return maxarea;
+    }
+private:
+    int dfs(vector< vector<int> >& grid, int i, int j, int m, int n) {
+        if(i<0 || i>=m || j<0 || j>=n) {
+            return 0;
+        }
+        if (grid[i][j] != 1) {
+            return 0;
+        }
+        grid[i][j] = 2;
+        int ans = 1;
+        for (auto& [di, dj]: vector<pair<int, int>> { {0,1}, {0,-1}, {1,0}, {-1,0} }) {
+            int _i = i+di;
+            int _j = j+dj;
+            ans += dfs(grid, _i, _j, m, n);
+        }
+        return ans;
+    }
+};
+
+
+// 搜索二维矩阵
+class Solution {
+public:
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        int m=matrix.size();
+        int n=matrix[0].size();
+        int i=0, j=n-1;
+        while (i>=0 && i<m && j>=0 && j<n) {
+            if (matrix[i][j]==target) {
+                return true;
+            } else if (matrix[i][j] > target) {
+                j--;
+            } else {
+                i++;
+            }
+        }
+        return false;
+    }
+};
+
+// 异位词分组
+class GroupAnagrams{
+public:
+    vector<vector<string>> groupAnagrams(vector<string>& strs) {
+        auto arrayHash = [fn=hash<int>{}] (const array<int, 26>& arr) -> size_t {
+            return accumulate(arr.begin(), arr.end(), 0u, [&](size_t acc, int num){
+                              return (acc<<1)^fn(num);
+                              });
+
+        };
+
+        unordered_map<array<int, 26>, vector<string>, decltype(arrayHash)> mp(0, arrayHash);
+
+        for (const string& s: strs) {
+            array<int, 26> count{};
+            for (char c: s) {
+                count[c-'a'] += 1;
+            }
+            mp[count].emplace_back(s);
+        }
+        vector< vector<string> > result;
+        for (auto& e: mp) {
+            result.push_back(e.second);
+        }
+        return result;
+    }
+};
+
+// 长度最小的子数组
+class MinsubArrayLen {
+public:
+    int minSubArrayLen(int target, vector<int>& nums) {
+        queue<int> window;
+        int tmp = 0;
+        int minsize = INT_MAX;
+        for (int num: nums) {
+            window.push(num);
+            tmp += num;
+            while (tmp>=target) {
+                minsize = min(minsize, window.size());
+                int t = window.front();
+                tmp -= t;
+                window.pop();
+            }
+        }
+        return minsize<INT_MAX ? minsize : 0;
+    }
+};
+
+// 最大矩形
+class MaximalRectangle{
+public:
+    int maximalRectangle(vector<vector<char>>& matrix) {
+        int m = matrix.size();
+        if (m==0) {
+            return 0;
+        }
+        int n = matrix[0].size();
+        std::vector< vector<int> > dmatrix;
+        for (const auto& row : matrix) {
+            std::vector<int> int_row;
+            for (const auto& cell: row) {
+                int_row.push_back(cell-'0');
+            }
+            dmatrix.push_back(int_row);
+        }
+
+        hists = gethists(dmatrix);
+        int max_area = 0;
+        for(const auto& hist :hists ) {
+            max_area = std::max(max_area, get_max(hist));
+        }
+        return max_area;
+    }
+
+    std::vector< vector<int> > gethists(vector< vector<int> >& matrix) {
+        int m = matrix.size();
+        int n = matrix[0].size();
+        std::vector< std::vector<int> > hists = { matrix[0] };
+
+        for (int i=1; i<m; i++) {
+            std::vector<int> hist;
+            for (int j=0; j<n; j++) {
+                if ( matrix[i][j] == 0 )  {
+                    hist.push_back(0);
+                } else {
+                    hist.push_back(hists.back()[j] + 1);
+                }
+            }
+            hists.push_back(hist);
+        }
+        return hists;
+    }
+
+    int get_max(const std::vector<int> hist) {
+        int n = hist.size();
+        std::stack<int> stack;
+        std::vector<int> left(n, -1);
+        std::vector<int> right(n, n);
+
+        for (int i = 0; i < n; ++i) {
+            while (!stack.empty() && hist[stack.top()] >= hist[i]) {
+                stack.pop();
+            }
+            if (!stack.empty()) {
+                left[i] = stack.top();
+            }
+            stack.push(i);
+        }
+
+        while (!stack.empty()) {
+            stack.pop();
+        }
+
+        for (int i = n - 1; i >= 0; --i) {
+            while (!stack.empty() && hist[stack.top()] >= hist[i]) {
+                stack.pop();
+            }
+            if (!stack.empty()) {
+                right[i] = stack.top();
+            }
+            stack.push(i);
+        }
+
+        int max_area = 0;
+        for (int i = 0; i < n; ++i) {
+            max_area = std::max(max_area, hist[i] * (right[i] - left[i] - 1));
+        }
+        return max_area;
+    }
+    }
+};
+
+// 寻找重复数, 使用O(1) 空间复杂度;
+class FindDuplicate{
+public:
+    int findDuplicate(vector<int>& nums) {
+        int slow=0, fast=0;
+        while(true) {
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+            if (slow==fast) {
+                break;
+            }
+        }
+        fast = 0;
+        while(slow!=fast) {
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return fast;
+    }
+};
+
+// 数组中的重复数据, 
+class FindDuplicates{
+public:
+    vector<int> findDuplicates(vector<int>& nums) {
+        vector<int> ans;
+        for (const auto& num: nums) {
+            int x = abs(num);
+            if (nums[x-1]>0) {
+                nums[x-1] = -nums[x-1];
+            } else {
+                ans.push_back(x);
+            }
+        }
+        return ans;
+    }
+};
+
+// 最小路径和
+class Solution {
+public:
+    int minPathSum(vector<vector<int>>& grid) {
+        int m = grid.size();
+        int n = grid[0].size();
+        vector<vector<int>> dp(m, vector<int>(n, 0));
+
+        dp[0][0] = grid[0][0];
+        for(int i=1; i<m; i++) {
+            dp[i][0] = grid[i][0] + dp[i-1][0];
+        }
+        for(int j=1; j<n; j++) {
+            dp[0][j] = grid[0][j] + dp[0][j-1];
+        }
+
+        for (int i=1; i<m; i++) {
+            for (int j=1; j<n; j++) {
+                dp[i][j] = std::min(dp[i-1][j], dp[i][j-1]) + grid[i][j];
+            }
+        }
+        return dp[m-1][n-1];
+    }
+};
+
+// 最长回文子串
+class Solution {
+public:
+    string longestPalindrome(string s) {
+        int n = s.size();
+        if (n<=1) {
+            return s;
+        }
+        int maxlen = 0;
+        string maxstr = "";
+        for (int i=0; i<n; i++) {
+            int left = i-1, right = i;
+            while (right<n && s[right]==s[i]) {
+                ++right;
+            }
+            while (left>=0 && right<n && s[left]==s[right]) {
+                --left;
+                ++right;
+            }
+            int tmp = right-(left+1);
+            if(tmp>maxlen) {
+                maxlen = tmp;
+                maxstr = s.substr(left+1, maxlen);
+            }
+        }
+    return maxstr;
+    }
+};
+
+// 买卖股票最佳时机
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int minprice=prices[0];
+        int maxprofit=0;
+        for (int i=1; i<prices.size(); i++) {
+            minprice = std::min(minprice, prices[i]);
+            maxprofit = std::max(maxprofit, prices[i]-minprice);
+        }
+        return maxprofit;
+    }
 };

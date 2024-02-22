@@ -337,7 +337,7 @@ class LlamaAttention(nn.Module):
 
 class LlamaRotaryEmbedding(nn.Module):
     def __init__(self, dim, max_position_embeddings=2048, base=10000, device=None):
-        super().__init__() 
+        super(LlamaRotaryEmbedding, self).__init__() 
 
         self.dim = dim
         self.max_position_embeddings = max_position_embeddings 
