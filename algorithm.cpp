@@ -1844,3 +1844,79 @@ public:
         return maxprofit;
     }
 };
+
+// 平衡二叉树,左右子树高度差不超过1；
+/**
+ * Definition for a binary tree node.
+ * struct TreeNode {
+ *     int val;
+ *     TreeNode *left;
+ *     TreeNode *right;
+ *     TreeNode() : val(0), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x) : val(x), left(nullptr), right(nullptr) {}
+ *     TreeNode(int x, TreeNode *left, TreeNode *right) : val(x), left(left), right(right) {}
+ * };
+ */
+class Solution {
+public:
+    bool isBalanced(TreeNode* root) {
+        if (root==nullptr) {
+            return true;
+        }
+        int ldepth = depth(root->left);
+        int rdepth = depth(root->right);
+        return (std::abs(ldepth-rdepth)<=1 && isBalanced(root->left) && isBalanced(root->right));
+        
+    }
+private:
+    int depth(TreeNode* root) {
+        if(root==nullptr) {
+            return 0;
+        }
+        return std::max(depth(root->left), depth(root->right))+1;
+    }
+};
+
+// 字符串解码
+// k[encoded_string]
+class Solution {
+public:
+    string decodeString(string s) {
+        std::stack<string> stack;
+        for(char c: s) {
+            if (c!=']') {
+                stack.push(std::string(1, c));
+
+            } else {
+                string num="";
+                string _s = "";
+                while (!stack.empty()) {
+                    string _c = stack.top();
+                    stack.pop();
+                    if (_c=="[") {
+                        break;
+                    }
+                    _s = _c + _s;
+                }
+                while (!stack.empty() && isdigit(stack.top()[0])) {
+                    num = stack.top() + num;
+                    stack.pop();
+                }
+
+                std::string ns = "";
+                int repeat = std::stoi(num);
+                for (int i = 0; i < repeat; ++i) {
+                    ns += _s;
+                }
+                stack.push(ns);
+            }
+        }
+        std::string result = "";
+        while (!stack.empty()) {
+            result = stack.top() + result;
+            stack.pop();
+        }
+
+        return result;
+    }
+};
