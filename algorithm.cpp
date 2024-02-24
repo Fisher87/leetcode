@@ -1920,3 +1920,92 @@ public:
         return result;
     }
 };
+
+// 子树
+class Solution {
+public:
+    bool isSubtree(TreeNode* root, TreeNode* subRoot) {
+        if(root==nullptr) {
+            return false;
+        }
+        return sametree(root, subRoot) || isSubtree(root->left, subRoot) ||
+             isSubtree(root->right, subRoot);
+
+    }
+private:
+    bool sametree(TreeNode* root, TreeNode* subRoot) {
+        if(root==nullptr && subRoot==nullptr) {
+            return true;
+        }
+        if(root==nullptr || subRoot==nullptr || root->val!=subRoot->val) {
+            return false;
+        }
+        return root->val==subRoot->val && sametree(root->left, subRoot->left) && 
+            sametree(root->right, subRoot->right);
+    }
+};
+
+// 两数之和
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& nums, int target) {
+        unordered_map<int, vector<int> > num_index;
+        for(int i=0; i<nums.size(); i++) {
+            num_index[nums[i]].push_back(i);
+        }
+        for (int i=0; i<nums.size(); i++) {
+            int num = nums[i];
+            int diff= target-num;
+            if(num_index.find(diff)!=num_index.end()){
+                vector<int> idxs = num_index[diff];
+                auto it = std::find(idxs.begin(), idxs.end(), i);
+                if (it != idxs.end()) {
+                    idxs.erase(it);
+                }
+                if (!idxs.empty()) {
+                    return {i, idxs[0]};
+                }
+            }
+        }
+        return {};
+    }
+};
+
+// 反转链表
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        ListNode* pre = nullptr;
+        ListNode* cur = head;
+        while (cur!=nullptr){
+            ListNode* next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+};
+
+// 合并有序数组
+class Solution {
+public:
+    void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+        int inx = m+n-1; int i=m-1; int j=n-1;
+        while (i>=0 && j>=0) {
+            if (nums1[i]>nums2[j]) {
+                nums1[inx] = nums1[i];
+                i--;
+            } else {
+                nums1[inx] = nums2[j];
+                j--;
+            }
+            inx--;
+        }
+        while (j>=0) {
+            nums1[inx]=nums2[j];
+            inx--;
+            j--;
+        }
+    }
+};
