@@ -852,6 +852,19 @@ class MaxSlidingWindow:
             ans.append( nums[dq[0]] )
         return ans
 
+    def maxslidingwindow(self, nums, k):
+        ans = []
+        dq = deque()
+        for i in range(len(nums)):
+            while dq and nums[i]>=nums[dq[-1]]:
+                dq.pop()
+            dq.append(i)
+            while dq and (i-dq[0])>=k:
+                dq.popleft()
+            if i>=k-1:
+                ans.append(nums[dq[0]])
+        return ans
+
 class ReorderList:
     # 重排链表
     def reorderList(self, head):

@@ -11,6 +11,7 @@
 *  priority_queue< int > 升序队列
 *  unordered_map< string, string > 字典
 ================================================================*/
+#include <algorithm>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -531,7 +532,7 @@ public:
         vector<int> result;
         deque<int> dq;
         for(int i=0; i<nums.size(); i++) {
-            if (!dq.empyt() && i-dq.front()>=k) {
+            while (!dq.empty() && i-dq.front()>=k) {
                 dq.pop_front();
             }
             while(!dq.empty() && nums[dq.back()]<=nums[i]) {
@@ -2007,5 +2008,296 @@ public:
             inx--;
             j--;
         }
+    }
+};
+
+// 乘积最大子数组
+class Solution {
+public:
+    int maxProduct(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> min(nums);
+        vector<int> max(nums);
+        for(int i=1; i<n; i++) {
+            min[i] = std::min(min[i-1]*nums[i], std::min(nums[i], max[i-1]*nums[i]));
+            max[i] = std::max(max[i-1]*nums[i], std::max(nums[i], min[i-1]*nums[i]));
+        }
+        vector<int>::iterator ans=max_element(max.begin(), max.end());
+        return *ans;
+    }
+};
+
+// 二叉搜索树转换为双向链表
+class Solution {
+public:
+    Node* treeToDoublyList(Node* root) {
+        if (root==nullptr) {
+            return root;
+        }
+        Node* head = nullptr;
+        Node* pre = nullptr;
+        inorder(root, head, pre);
+        if (head) {
+            head->left = pre;
+            pre->right = head;
+        }
+        return head;
+    }
+private:
+    void inorder(Node* root, Node*& head, Node*& pre) {  // 这里需要传递指针的引用
+        if (root==nullptr) {
+            return ;
+        }
+        inorder(root->left, head, pre);
+        if (head==nullptr) {
+            head = root;
+        } else {
+            pre->right = root;
+            root->left = pre;
+        }
+        pre = root;
+        inorder(root->right, head, pre);
+    }
+};
+
+// 组合最大数
+class Solution {
+public:
+    string largestNumber(vector<int>& nums) {
+        sort(nums.begin(), nums.end(), 
+             [](int x, int y) {
+             string a = to_string(x);
+             string b = to_string(y);
+             return a+b > b+a;
+             });
+        if (nums[0]==0) {
+            return "0";
+        }
+        string result;
+        for(int num: nums) {
+            result += to_string(num);
+        }
+        return result;
+    }
+};
+
+// 逆序对总数
+// 1. 使用归并排序
+class Solution {
+public:
+    int mergeSort(vector<int>& record, vector<int>& tmp, int l, int r) {
+        //归并排序函数，建了两个容器，整数数组record临时数组tmp左边界l右边界r
+        if (l >= r) {//左数大于右数
+            return 0;
+        }
+
+        int mid = (l + r) / 2;//把一列数分成左右两部分
+        int inv_count = mergeSort(record, tmp, l, mid) + mergeSort(record, tmp, mid + 1, r);//递归
+        int i = l, j = mid + 1, pos = l;//i指向左半部分的起始位置，j指向右半部分的起始位置，pos指向临时数组的起始位置
+        while (i <= mid && j <= r) {
+            if (record[i] <= record[j]) {
+                tmp[pos] = record[i];
+                ++i;
+                inv_count += (j - (mid + 1));
+            }
+            else {
+                tmp[pos] = record[j];
+                ++j;
+            }
+            ++pos;
+        }
+        for (int k = i; k <= mid; ++k) {//左
+            tmp[pos++] = record[k];
+            inv_count += (j - (mid + 1));//记录逆序对
+        }
+        for (int k = j; k <= r; ++k) {//右
+            tmp[pos++] = record[k];
+        }
+        copy(tmp.begin() + l, tmp.begin() + r + 1, record.begin() + l);////将排好序的临时数组复制回原数组
+        return inv_count;//逆序对的数量
+    }
+
+    int reversePairs(vector<int>& record) {
+        int n = record.size();
+        vector<int> tmp(n);
+        return mergeSort(record, tmp, 0, n - 1);
+    }
+};
+
+// 使用树状数组
+class Solution {
+public:
+    int reversePairs(vector<int>& record) {
+        if(record.size()<2)
+        {
+            return 0;
+        }
+        //树状数组/线段树
+        int ans=0;
+        int n=record.size();
+        vector<int> trees(n+1);
+
+        auto lowerBit=[&](int x)->int
+        {
+            return x&(-x);
+        };
+
+        auto add=[&](int x,int u)
+        {
+            for(int i=x;i<=n;i+=lowerBit(i))
+            {
+                trees[i]+=u;
+            }
+        };
+
+        auto query=[&](int x)
+        {
+            int ans=0;
+            for(int i=x;i;i-=lowerBit(i))
+            {
+                ans+=trees[i];
+            }
+            return ans;
+        };
+
+        //从大到小插入
+        int id[n];
+        iota(id,id+n,0);
+        sort(id,id+n,[&](int i,int j){return record[i]>record[j];});
+        int pre=record[id[0]];
+        vector<int> tmp;
+        for(int i:id)
+        {
+            if(record[i]!=pre)
+            {
+                for(int j:tmp)
+                {
+                    add(j+1,1);
+                }
+                vector<int> tmp1;
+                swap(tmp,tmp1);
+                pre=record[i];
+            }
+            tmp.push_back(i);
+            ans+=query(i);
+
+        }
+        return ans;
+    }
+};
+
+class BIT {
+private:
+    vector<int> tree;
+    int n;
+
+public:
+    BIT(int _n): n(_n), tree(_n + 1) {}
+
+    static int lowbit(int x) {
+        return x & (-x);
+    }
+
+    int query(int x) {
+        int ret = 0;
+        while (x) {
+            ret += tree[x];
+            x -= lowbit(x);
+        }
+        return ret;
+    }
+
+    void update(int x) {
+        while (x <= n) {
+            ++tree[x];
+            x += lowbit(x);
+        }
+    }
+};
+
+class Solution {
+public:
+    int reversePairs(vector<int>& record) {
+        int n = record.size();
+        vector<int> tmp = record;
+        // 离散化
+        sort(tmp.begin(), tmp.end());
+        for (int& num: record) {
+            num = lower_bound(tmp.begin(), tmp.end(), num) - tmp.begin() + 1;
+        }
+        // 树状数组统计逆序对
+        BIT bit(n);
+        int ans = 0;
+        for (int i = n - 1; i >= 0; --i) {
+            ans += bit.query(record[i] - 1);
+            bit.update(record[i]);
+        }
+        return ans;
+    }
+};
+
+// 重排链表
+class Solution {
+public:
+    void reorderList(ListNode* head) {
+        if (!head || !head->next || !head->next->next) {
+            return;
+        }
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while(fast->next && fast->next->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        ListNode* _l2 = slow->next;
+        slow->next = nullptr;
+        ListNode* l1 = head;
+        ListNode* l2 = reverse(_l2); 
+        merge(l1, l2);
+    }
+private:
+    ListNode* reverse(ListNode* head) {
+        ListNode* cur = head;
+        ListNode* pre = nullptr;
+        ListNode* next;
+        while (cur!=nullptr) {
+            next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+    void merge(ListNode* l1, ListNode* l2) {
+        ListNode *l1next, *l2next;
+        while (l1!=nullptr && l2!=nullptr) {
+            l1next = l1->next;
+            l2next = l2->next;
+
+            l1->next = l2;
+            l1 = l1next;
+
+            l2->next = l1;
+            l2 = l2next;
+        }
+    }
+};
+
+// 除自身以外数组的乘积
+class Solution {
+public:
+    vector<int> productExceptSelf(vector<int>& nums) {
+        int size = nums.size();
+        vector<int> left(size, 1);
+        vector<int> right(size, 1);
+        for (int i=1; i<size; i++) {
+            left[i] = left[i-1]*nums[i-1];
+            right[size-i-1] = nums[size-i] * right[size-i];
+        }
+        vector<int> ans ;
+        for (int i=0; i<size; i++) {
+            ans.push_back(left[i]*right[i]);
+        }
+        return ans;
     }
 };

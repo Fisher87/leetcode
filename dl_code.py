@@ -368,4 +368,62 @@ def apply_rotary_emb(xq, xk, freqs_cis):
     xk_out = torch.view_as_real(xk_ * freqs_cis).flatten(2)
     return xq_out.type_as(xq), xk_out.type_as(xk)
 
+# 或者
+
+class LlamaRotaryEmbedding(nn.Module):
+    def __init__(self, dim, max_position_embeddings=2048, base=10000, device=None):
+        super(LlamaRotaryEmbedding, self).__init__() 
+
+        self.dim = dim
+        self.max_position_embeddings = max_position_embeddings 
+        self.base = base
+        inv_freq = 1.0 / (self.base ** (torch.arange(0, self.dim, 2).float().to(device) / self.dim))
+        self.register_buffer("inv_freq", inv_freq)
+
+        self._set_cos_sin_cache(
+            seq_len=max_position_embeddings, device=self.inv_freq.device, dtype=torch.get_default_dtype()
+        )
+
+    def _set_cos_sin_cache(self, seq_len, device, dtype):
+        self.max_seq_len_cached = seq_len
+        t = torch.arange(self.max_position_embeddings, device=device, dtype=self.inv_freq.dtype)
+        freqs = torch.einsum("i,j->ij", t, self.inv_freq)
+        emb = torch.cat([freqs, freqs], dim=-1)
+        self.register_buffer("cos_cached", emb.cos()[None, None, :, :].to(dtype), persistent=False)
+        self.register_buffer("sin_cached", emb.sin()[None, None, :, :].to(dtype), persistent=False)
+
+    def forward(self, x, seq_len=None):
+        if seq_len > self.max_seq_len_cached:
+            self.max_seq_len_cached = seq_len
+            self._set_cos_sin_cache(seq_len, device=x.device, dtype=x.dtype)
+        return (
+            self.cos_cached[:, :, :seq_len, ...].to(dtype=x.dtype),
+            self.sin_cached[:, :, :seq_len, ...].to(dtype=x.dtype)
+        )
+
+def rotate_half(x, interleaved=False):
+    if not interleaved: # 不交错
+        # x1, x2 = x.chunk(2, dim=-1)
+        dim = x.shape[-1]
+        x1, x2 = x[..., :dim//2], x[..., dim//2:]
+        return torch.cat([-x2, x1], dim=-1)
+    else: # 交错
+        x1, x2 = x[..., ::2], x[..., 1::2]
+        return rearrange(torch.stack((-x2, x1), dim=-1), '... d two -> ... (d two)', two=2)
+
+def apply_rotary_pos_emb(q, k, cos, sin, position_ids):
+    cos = cos.squeeze(1).squeeze(0)     # [seq_len, dim]
+    sin = sin.squeeze(1).squeeze(0)
+    cos = cos[position_ids].unsqueeze(1)   # [bsz, 1, seq_len, dim]
+    sin = sin[position_ids].unsqueeze(1)
+    q_embed = (q * cos) + (rotate_half(q) * sin)
+    k_embed = (k * cos) + (rotate_half(k) * sin)
+    return (q_embed, k_embed)
+
+# query_states -> [bsz, num_head, seq_len, head_dim]
+# position_ids -> [bsz, seq_len]
+rotary_embe = LlamaRotaryEmbedding(1024)
+cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
+query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+
 ############################################################################################################
