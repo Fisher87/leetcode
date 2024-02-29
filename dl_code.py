@@ -427,3 +427,68 @@ cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
 query_states, key_states = apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
 
 ############################################################################################################
+import torch
+import torch.nn as nn
+
+class SlidingWindowAttention(nn.Module):
+    def __init__(self, input_size, window_size, hidden_size):
+        super(SlidingWindowAttention, self).__init__()
+        self.input_size = input_size
+        self.window_size = window_size
+        self.hidden_size = hidden_size
+
+        # Linear layer to project input embeddings to the desired hidden size
+        self.input_projection = nn.Linear(input_size, hidden_size)
+
+        # Linear layers for computing attention scores
+        self.query = nn.Linear(hidden_size, hidden_size)
+        self.key = nn.Linear(hidden_size, hidden_size)
+        self.value = nn.Linear(hidden_size, hidden_size)
+
+        # Output projection
+        self.output_projection = nn.Linear(hidden_size, input_size)
+
+        # Softmax for attention weights
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, inputs):
+        batch_size, seq_len, _ = inputs.size()
+        output = torch.zeros_like(inputs)
+
+        for i in range(0, seq_len, self.window_size):
+            window = inputs[:, i:i+self.window_size, :]  # Extract window
+            window_len = window.size(1)
+
+            # Project window to hidden size
+            window_proj = self.input_projection(window)
+
+            # Compute attention scores
+            Q = self.query(window_proj)
+            K = self.key(window_proj)
+            V = self.value(window_proj)
+
+            # Calculate attention weights
+            scores = torch.matmul(Q, K.transpose(-2, -1)) / (self.hidden_size ** 0.5)
+            attn_weights = self.softmax(scores)
+
+            # Apply attention to values
+            window_output = torch.matmul(attn_weights, V)
+
+            # Concatenate window outputs
+            output[:, i:i+window_len, :] = window_output
+
+        # Project concatenated output to original input size
+        output = self.output_projection(output)
+
+        return output
+
+# Example usage:
+input_size = 512
+window_size = 5
+hidden_size = 256
+seq_len = 20
+batch_size = 32
+
+inputs = torch.randn(batch_size, seq_len, input_size)
+sliding_attention = SlidingWindowAttention(input_size, window_size, hidden_size)
+output = sliding_attention(inputs)

@@ -809,13 +809,13 @@ private:
     // end heap sort
 
     // begin quick sort
-    void quicksort(vector<int>& nums, int left, int right) {
+    void quick_sort(vector<int>& nums, int left, int right) {
         if (left>=right) {
             return ;
         }
         int pivot = partition(nums, left, right);
-        quicksort(nums, left, pivot-1);
-        quicksort(nums, pivot+1, right);
+        quick_sort(nums, left, pivot-1);
+        quick_sort(nums, pivot+1, right);
     }
     int partition(vector<int>& nums, int left, int right) {
         int pivotIndex = rand() % (right-left+1) + left;
@@ -2299,5 +2299,70 @@ public:
             ans.push_back(left[i]*right[i]);
         }
         return ans;
+    }
+};
+
+// k 个一组翻转
+class Solution {
+public:
+    ListNode* reverseKGroup(ListNode* head, int k) {
+        ListNode dummynode = ListNode(-1);
+        dummynode.next = head;
+
+        ListNode* pre = &dummynode;
+        while (head) {
+            ListNode *tail = pre;
+            for (int i=0; i<k; i++) {
+                tail = tail->next;
+                if (!tail) {
+                    return dummynode.next;
+                }
+            }
+            ListNode* next = tail->next;
+            reverse(head, tail);
+            pre->next = head;
+            tail->next = next;
+            pre = tail;
+            head = next;
+        }
+        return dummynode.next;
+    }
+
+private:
+    void reverse(ListNode*& head, ListNode*& tail) {
+        ListNode* pre = head;
+        ListNode* cur = head;
+        while (pre!=tail) {
+            ListNode* next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        std::swap(head, tail);
+    }
+};
+
+// 求根节点到叶节点数字之和
+class Solution {
+public:
+    int sumNumbers(TreeNode* root) {
+        sum = 0;
+        dfs(root, 0);
+        return sum;
+    }
+private:
+    int sum;
+    void dfs(TreeNode* root, int target) {
+        if (!root->left && !root->right) {
+            sum += (target*10 + root->val);
+            return ;
+        }
+
+        if (root->left) {
+            dfs(root->left, target*10 + root->val);
+        }
+        if (root->right) {
+            dfs(root->right, target*10 + root->val);
+        }
     }
 };
