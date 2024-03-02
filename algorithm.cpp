@@ -2366,3 +2366,147 @@ private:
         }
     }
 };
+
+// 接雨水
+class Solution {
+public:
+    int trap(vector<int>& height) {
+        int size = height.size();
+        vector<int> left_max(size, height[0]);
+        vector<int> right_max(size, height[size-1]);
+
+        for(int i=1; i<size; i++){
+            left_max[i] = std::max(left_max[i-1], height[i-1]);
+        }
+        for(int i=size-2; i>-1; i--) {
+            right_max[i]= std::max(right_max[i+1], height[i+1]);
+        }
+
+        int ans;
+        for(int i=1; i<size-1; i++) {
+            int minmax = std::min(left_max[i], right_max[i]);
+            ans += (minmax - height[i]);
+        }
+        return ans;
+    }
+};
+
+// 字符串相加
+//
+class Solution {
+public:
+    string addStrings(string num1, string num2) {
+        int l1 = num1.size();
+        int l2 = num2.size();
+        int ctx=0;
+        string ans="";
+        while (l1>=0 || l2>=0 || ctx) {
+            /* int a=0; */
+            /* int b=0; */
+            /* if (l1>=0) { */
+            /*     char c1 = num1[l1]; */
+            /*     l1--; */
+            /*     a = (c1-'0') */
+            /* } */
+            /* if(l2>=0) { */
+            /*     c2 = num2[l2]; */
+            /*     l2--; */
+            /*     b = (c2-'0') */
+            /* } */
+            int a = ( l1>=0 ? num1[l1]-'0' : 0 );
+            int b = ( l2>=0 ? num2[l2]-'0' : 0 );
+            int tmp = a + b + ctx;
+            int x = tmp % 10;
+            ans.push_back('0'+x)
+            ctx = tmp/10;
+            l1--;
+            l2--;
+        }
+        reverse(ans.begin(), ans.end());
+        return ans;
+    }
+};
+
+// 最大正方形
+class Solution {
+public:
+    int maximalSquare(vector<vector<char>>& matrix) {
+        if (matrix.size()==0 || matrix[0].size()==0) {
+            return 0;
+        }
+        int m = matrix.size();
+        int n = matrix[0].size();
+        vector< vector<int> > dp(m, vector<int>(n, 0));
+
+        int maxside = 0;
+        for (int i=0; i<m; i++) {
+            for (int j=0; j<n; j++) {
+                if (matrix[i][j] == '1') {
+                    if (i==0 || j==0) {
+                        dp[i][j] = 0;
+                    } else {
+                        dp[i][j] = min(dp[i-1][j-1], min(dp[i][j-1], dp[i-1][j])) + 1;
+                    }
+                }
+            }
+        }
+        return maxside * maxside;
+    }
+};
+
+// 第N位数字
+class Solution {
+public:
+    int findNthDigit(int n) {
+        long long d=1; // 表示当前数字有几位;
+        long long count=9;
+        while (n>d*count) {
+            n -= d*count;
+            d++;
+            count *= 10;
+        }
+        long long index = n-1;
+        long long start = pow(10, d-1);
+        long num = start + index/d;
+        int _ix = index % d;
+        return (to_string(num)[_ix]-'0');
+    }
+};
+
+// 螺旋矩阵 
+class Solution {
+public:
+    vector<int> spiralOrder(vector<vector<int>>& matrix) {
+        int m = matrix.size();
+        int n = matrix[0].size();
+        int total = m*n;
+        int left=0, right=n-1, top=0, bottom=m-1;
+        vector<int> ans;
+        while (total>=0) {
+            if (left > right) break;
+            for(int i=left; i<=right; i++) {
+                ans.push_back(matrix[top][i]);
+            }
+            top += 1;
+
+            if ( top > bottom ) break;
+            for(int i=top; i<=bottom; i++) {
+                ans.push_back(matrix[i][right]);
+            }
+            right--;
+
+            if ( right < left) break;
+            for(int i=right; i>=left; i--) {
+                ans.push_back(matrix[bottom][i]);
+            }
+            bottom--;
+
+            if (bottom < top) break;
+            for(int i=bottom; i>=top; i--) {
+                ans.push_back(matrix[i][left]);
+            }
+            left++;
+        }
+        return ans;
+    }
+};
