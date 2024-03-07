@@ -2890,7 +2890,6 @@ class MaxQueue:
 
 class Codec:
     def serialize(self, root):
-        # 使用层序遍历
         if not root:
             return ''
         return str(root.val) + ',' + self.serialize(root.left) + \
@@ -3119,6 +3118,27 @@ class PathSum:
         _sum = 0
         dfs(root, path, _sum)
         return self.ans
+
+class PathSumIII:
+    # 路径和
+    def pathSum(self, root, targetSum):
+        prefixSum_count = defaultdict(int)
+        prefixSum_count[0]=1
+
+        def dfs(root, cur_sum):
+            if not root:
+                return 0
+            cnt = 0
+            cur_sum += root.val
+            cnt += prefixSum_count[cur_sum-targetSum]
+            prefixSum_count[cur_sum]+=1
+            cnt += dfs(root.left, cur_sum)
+            cnt += dfs(root.right, cur_sum)
+            prefixSum_count[cur_sum] -= 1
+            return cnt
+
+        cnt = dfs(root, 0)
+        return cnt
 
 class ReorderList:
     def reorderList(self, head):
@@ -7154,11 +7174,11 @@ class OnlineSoftmax:
         for i in range(len(nums)):
             new_max = max(pre_max, nums[i])
             _sum  = _sum * math.exp(pre_max-new_max) + math.exp(nums[i]-new_max)
-            old_max = new_max
+            pre_max = new_max
 
         dst = []
         for i in range(len(nums)):
-            dst.append(math.exp( nums[i]-old_max) / _sum )
+            dst.append(math.exp( nums[i]-pre_max) / _sum )
         return dst
 
 # 类消消乐字符串消除, 删除3个及以上相同字符
@@ -7172,17 +7192,20 @@ class CharElimination:
         i = 1
         while i<n:
             c = s[i]
+            if not stack:
+                stack.append((c, 1))
+                i += 1
+                continue
+
+            if c!=stack[-1][0] and stack[-1][-1]>=3:
+                for j in range(stack[-1][-1]):
+                    stack.pop()
+
             if c == stack[-1][0]:
                 count = stack[-1][-1] + 1
                 stack.append((c, count))
                 i += 1
-                continue
-
-            if stack[-1][-1]>=3:
-                for j in range(stack[-1][-1]):
-                    stack.pop()
-
-            if not stack or c!=stack[-1][0]:
+            else:
                 stack.append((c, 1))
                 i += 1
 

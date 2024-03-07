@@ -2510,3 +2510,361 @@ public:
         return ans;
     }
 };
+
+// 二叉树最大深度
+class Solution {
+public:
+    int maxDepth(TreeNode* root) {
+        return dfs(root);
+    }
+private:
+    int dfs(TreeNode* root) {
+        if (!root) {
+            return 0;
+        }
+        return std::max(dfs(root->left), dfs(root->right)) + 1;
+    }
+};
+
+// 相交链表
+class Solution {
+public:
+    ListNode *getIntersectionNode(ListNode *headA, ListNode *headB) {
+        if(!headA || !headB) {
+            return nullptr;
+        }
+        ListNode* p = headA;
+        ListNode* q = headB;
+        while(p!=q) {
+            p = p ? p->next : headB; 
+            q = q ? q->next : headA;
+        }
+        return p;
+    }
+};
+
+// 二叉树剪枝
+class Solution {
+public:
+    TreeNode* pruneTree(TreeNode* root) {
+        if (!root) {
+            return nullptr;
+        }
+        root->left = pruneTree(root->left);
+        root->right= pruneTree(root->right);
+        if (!root->left && !root->right && root->val==0) {
+            return nullptr;
+        }
+        return root;
+    }
+};
+
+// 二叉树序列化和反序列化
+class Codec {
+public:
+    // Encodes a tree to a single string.
+    string serialize(TreeNode* root) {
+        vector<string> ans;
+        if (!root) {
+            return "[]";
+        }
+        deque< TreeNode* > dq = {root};
+        while(!dq.empty()) {
+            TreeNode* node = dq.front();
+            dq.pop_left();
+            if (node) {
+                ans.push_back(to_string(node->val));
+                dq.push_back(node->left);
+                dq.push_back(node->right);
+            } else {
+                ans.push_back("None");
+            }
+        }
+        string serial = "";
+        for (string t : ans) {
+            serial += ( "," + t );
+        }
+        return "[" + serial + "]";
+    }
+
+    // Decodes your encoded data to tree.
+    TreeNode* deserialize(string data) {
+        if (data == "[]") {
+            return nullptr;
+        }
+        std::vector<std::string> datalist;
+        size_t start = 1;
+        while (start < data.size()) {
+            size_t end = data.find(',', start);
+            datalist.push_back(data.substr(start, end - start));
+            start = end + 1;
+        }
+        TreeNode* root = new TreeNode(std::stoi(datalist[0]));
+        std::queue<TreeNode*> q;
+        q.push(root);
+        size_t i = 1;
+        while (!q.empty()) {
+            TreeNode* node = q.front();
+            q.pop();
+            if (datalist[i] != "None") {
+                node->left = new TreeNode(std::stoi(datalist[i]));
+                q.push(node->left);
+            }
+            ++i;
+            if (datalist[i] != "None") {
+                node->right = new TreeNode(std::stoi(datalist[i]));
+                q.push(node->right);
+            }
+            ++i;
+        }
+        return root;
+    }
+};
+
+// 两数相加
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        l1 = reverse(l1);
+        l2 = reverse(l2);
+
+        int ctx = 0;
+        ListNode* pre = nullptr;
+        while(l1 || l2 || ctx) {
+            int a = l1 ? l1->val : 0;
+            int b = l2 ? l2->val : 0;
+            int sum = a+b+ctx;
+            int val = sum % 10;
+            ctx = sum / 10;
+            ListNode* cur = new ListNode(val);
+            cur->next = pre;
+            pre = cur;
+            if (l1) {
+                l1 = l1->next;
+            }
+            if (l2) {
+                l2 = l2->next;
+            }
+        }
+        return pre;
+    }
+private:
+    ListNode* reverse(ListNode* head) {
+        ListNode* pre = nullptr;
+        ListNode* cur = head;
+        while (cur) {
+            ListNode* next = cur->next;
+            cur->next = pre;
+            pre = cur;
+            cur = next;
+        }
+        return pre;
+    }
+};
+
+class Solution {
+public:
+    ListNode* addTwoNumbers(ListNode* l1, ListNode* l2) {
+        int ctx = 0;
+        ListNode* dummynode = new ListNode(-1);
+        ListNode* pre = dummynode;
+        while (l1 || l2 || ctx) {
+            int a = l1 ? l1->val : 0;
+            int b = l2 ? l2->val : 0;
+            int sum = (a+b+ctx);
+            int val = sum % 10;
+            ctx = sum / 10;
+            ListNode* cur = new ListNode(val);
+            pre->next = cur;
+            pre = cur;
+            if (l1) {
+                l1 = l1->next;
+            }
+            if (l2) {
+                l2 = l2->next;
+            }
+        }
+        return dummynode->next;
+    }
+};
+
+// 不同的路径
+class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        vector< vector<int> > dp(m, vector<int>(n, 0));
+        for (int i=0; i<m; i++){
+            dp[i][0] = 1;
+        }
+        for (int j=0; j<n; j++){
+            dp[0][j] = 1;
+        }
+        
+        for(int i=1; i<m; i++) {
+            for (int j=1; j<n; j++) {
+                dp[i][j] = dp[i-1][j] + dp[i][j-1];
+            }
+        }
+        return dp[m-1][n-1];
+    }
+};
+
+class Solution {
+public:
+    int uniquePathsWithObstacles(vector<vector<int>>& obstacleGrid) {
+        int m = obstacleGrid.size();
+        int n = obstacleGrid[0].size();
+
+        vector< vector<int> > dp(m, vector<int>(n, 0));
+        dp[0][0] = (obstacleGrid[0][0]==1) ? 0 : 1;
+
+        for(int i=1; i<m; ++i) {
+            dp[i][0] = (obstacleGrid[i][0]==1) ? 0 : dp[i-1][0];
+        }
+
+        for (int j=1; j<n; ++j) {
+            dp[0][j] = (obstacleGrid[0][j]==1) ? 0 : dp[0][j-1];
+        }
+
+        for(int i=1; i<m; i++) {
+            for (int j=1; j<n; j++) {
+                if (obstacleGrid[i][j]==1) {
+                    dp[i][j] = 0;
+                } else {
+                    dp[i][j] = dp[i-1][j] + dp[i][j-1];
+                }
+            }
+        }
+
+        return dp[m-1][n-1];
+    }
+};
+
+// 最长连续序列
+class Solution {
+public:
+    int longestConsecutive(vector<int>& nums) {
+        unordered_set<int> num_set;
+        for (auto num: nums) {
+            num_set.insert(num);
+        }
+        int maxlen = 0;
+        for (int num: nums) {
+            if (num_set.count(num-1)) {
+                continue;
+            }
+
+            int start = num;
+            int end = num+1;
+            while (num_set.count(end)){
+                end = end+1;
+            }
+            maxlen = std::max(maxlen, end-start);
+        }
+        return maxlen;
+    }
+};
+
+// 丑数
+class Solution {
+public:
+    int nthUglyNumber(int n) {
+        vector<int> dp(n+1);
+        dp[0] = 1;
+        dp[1] = 1;
+        int k2=1, k3=1, k5=1;
+        for(int i=2; i<n+1; i++) {
+            dp[i] = std::min(2*dp[k2], std::min(3*dp[k3], 5*dp[k5]));
+            if (dp[i]==2*dp[k2]) {
+                k2++;
+            } 
+            if (dp[i]==3*dp[k3]) {
+                k3++;
+            }
+            if (dp[i]==5*dp[k5]) {
+                k5++;
+            }
+        }
+        return dp[n];
+    }
+};
+
+// 路径总和 III
+class Solution {
+public:
+    int pathSum(TreeNode* root, int targetSum) {
+        prefixsumCount.clear();
+        prefixsumCount[0] = 1;
+        int cnt = dfs(root, 0, targetSum);
+        return cnt;
+    }
+private:
+    unordered_map<long, int> prefixsumCount;
+    int dfs(TreeNode* root, long prefixsum, int target) {
+        if (!root) {
+            return 0;
+        }
+        int cnt = 0;
+        prefixsum += root->val;
+        if (prefixsumCount.find(prefixsum-target)!=prefixsumCount.end()) {
+            cnt += prefixsumCount[prefixsum-target];
+        }
+        if (prefixsumCount.find(prefixsum)!=prefixsumCount.end()) {
+            prefixsumCount[prefixsum]++;
+        } else {
+            prefixsumCount[prefixsum] = 1;
+        }
+        cnt += dfs(root->left, prefixsum, target);
+        cnt += dfs(root->right, prefixsum, target);
+        prefixsumCount[prefixsum]--;
+
+        return cnt;
+    }
+};
+
+// 和为k的子数组
+class Solution {
+public:
+    int subarraySum(vector<int>& nums, int k) {
+        unordered_map<long, int> prefixcount;
+        prefixcount[0] = 1;
+        long prefix = 0;
+        int ans = 0;
+        for (int num: nums) {
+            prefix += num;
+            if (prefixcount.find(prefix-k)!=prefixcount.end()) {
+                ans += prefixcount[prefix-k];
+            }
+            if (prefixcount.find(prefix)!=prefixcount.end()) {
+                prefixcount[prefix]++;
+            } else {
+                prefixcount[prefix] = 1;
+            }
+        }
+        return ans;
+    }
+};
+
+// 多数元素
+class Solution {
+public:
+    int majorityElement(vector<int>& nums) {
+        int cur=nums[0], count=1;
+        // unordered_map<int, int> map;
+        int size = nums.size();
+        for (int i=1; i<size; i++) {
+            if (count==0) {
+                cur = nums[i];
+                count = 1;
+                continue;
+            }
+
+            if (nums[i]==cur) {
+                count++;
+            } else {
+                count--;
+            }
+        }
+        return cur;
+    }
+};
