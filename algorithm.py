@@ -3356,6 +3356,11 @@ class Viterbi:
                 prob = viterbi_mat[:, t-1] * trans_prob[:, s] * emission_prob[s, obs[t]]
                 viterbi_mat[s, t] = np.max(prob)    # 表示当前状态为s时的最大概率值
                 path_mat[s,t] = np.argmax(prob)     # 表示的是由哪个位置(上一个状态)到当前位置状态为s概率最大
+        ## 转化成矩阵形式
+        # for t in range(1, T):
+        #     prob = viterbi_mat[:, t-1][:,None] + trans_prob + emission_prob[obs[t]] 
+        #     viterbi_mat[t] = prob.max(0)
+        #     path_mat[t] = prob.argmax(0)
 
         # 回溯最优路径
         best_path = [np.argmax(viterbi_mat[:, -1])]

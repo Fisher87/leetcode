@@ -2868,3 +2868,74 @@ public:
         return cur;
     }
 };
+
+// 环形链表II 
+class Solution {
+public:
+    ListNode *detectCycle(ListNode *head) {
+        if(!head || !head->next) {
+            return nullptr;
+        }
+        ListNode* slow = head;
+        ListNode* fast = head;
+        while(true) {
+            if (!fast->next || !fast->next->next) {
+                return nullptr;
+            }
+            slow = slow->next;
+            fast = fast->next->next;
+        }
+        fast = head;
+        while(fast!=slow) {
+            slow = slow->next;
+            fast = fast->next;
+        }
+        return slow;
+    }
+};
+
+// 最长公共子序列
+class Solution {
+public:
+    int longestCommonSubsequence(string text1, string text2) {
+        int m = text1.size();
+        int n = text2.size();
+        vector< vector<int> > dp(m+1, vector<int>(n+1, 0));
+        for (int i=1; i<m+1; i++) {
+            for (int j=1; j<n+1; j++) {
+                if (text1[i-1]==text2[j-1]) {
+                    dp[i][j] = dp[i-1][j-1] + 1;
+                } else {
+                    dp[i][j] = std::max(dp[i-1][j], dp[i][j-1]);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+};
+
+// 二叉树最大路径和
+class Solution {
+public:
+    int maxPathSum(TreeNode* root) {
+        maxsum = LONG_MIN;
+        long t = maxroot(root);
+        return maxsum;
+    }
+
+private:
+    long maxsum;
+    long maxroot(TreeNode* root) {
+        if (!root) {
+            return 0;
+        }
+        long left = maxroot(root->left);
+        long right= maxroot(root->right);
+        long sum = left + right + root->val;
+        if (sum > maxsum) {
+            maxsum=sum;
+        }
+        long _max = std::max(left, right)+root->val;
+        return _max > 0 ? _max : 0 ;
+    }
+};
