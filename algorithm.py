@@ -7215,3 +7215,56 @@ class CharElimination:
                 i += 1
 
         return ''.join([_[0] for _ in stack])
+
+# 验证前序遍历序列二叉搜索树
+class VerifyPreorder:
+    def verifyPreorder(self, preorder):
+        if len(preorder)<=2:
+            return True
+        stack = []
+        _min = -float('inf')
+        for i in range(len(preorder)):
+            if preorder[i] < _min:
+                return False
+            while (stack and stack[-1] < preorder[i]) {
+                _min = stack.pop()
+            }
+
+            stack.append(preorder[i])
+        return True
+
+# 二叉树层序遍历
+class Solution:
+    def level_travel1(self, root): # 遍历方式
+        if not root:
+            return []
+        stack = [root]
+        ans = []
+        while stack:
+            size = len(stack)
+            tmp = []
+            for i in range(size):
+                node = stack.pop(0)
+                tmp.append(node.val)
+                if node.left:
+                    stack.append(node.left)
+                if node.right:
+                    stack.append(node.right)
+                ans.append(tmp)
+        return ans
+
+    def level_travel2(self, root):  # 递归方式
+        depth = 0
+        result= []
+        def dfs(root, depth, result):
+            if not root:
+                return
+            if len(result)==depth:
+                result.append([])
+
+            result[depth].append(node.val)
+            dfs(root.left, depth+1, result)
+            dfs(root.right, depth+1, result)
+        dfs(root, depth, result)
+        return result
+

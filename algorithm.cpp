@@ -12,6 +12,7 @@
 *  unordered_map< string, string > 字典
 ================================================================*/
 #include <algorithm>
+#include <climits>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -2937,5 +2938,159 @@ private:
         }
         long _max = std::max(left, right)+root->val;
         return _max > 0 ? _max : 0 ;
+    }
+};
+
+// 验证前序遍历序列二叉搜索树
+class Solution {
+public:
+    bool verifyPreorder(vector<int>& preorder) {
+        if(preorder.size() <= 2) return true;
+        int MIN = INT32_MIN;
+        stack<int> s;
+        for(int i = 0; i < preorder.size(); ++i)
+        {
+            if(preorder[i] < MIN)
+                return false;
+            while(!s.empty() && s.top() < preorder[i])//遇到大的了，右分支
+            {
+                MIN = s.top();//记录弹栈的栈顶为最小值
+                s.pop();
+            }
+            s.push(preorder[i]);
+        }
+        return true;
+    }
+};
+
+// 二叉搜索树的第k大节点
+class Solution {
+public:
+    int findTargetNode(TreeNode* root, int cnt) {
+        this->cnt = cnt;
+        dfs(root);
+        return ans
+    }
+private:
+    int ans, cnt;
+    void dfs(TreeNode* root){
+        if (!root) {
+            return ;
+        }
+        dfs(root->right);
+        if (cnt==0) {
+            return ;
+        }
+        if (--cnt==0) {
+            ans = root->val;
+        }
+        dfs(root->left);
+    }
+};
+
+// 最长重复子数组
+//
+class Solution {
+public:
+    int findLength(vector<int>& nums1, vector<int>& nums2) {
+        int m = nums1.size();
+        int n = nums2.size();
+        vector< vector<int> > dp(m+1, vector<int>(n+1, 0));
+
+        int max = LONG_MIN;
+        for (int i=1; i<m+1; i++) {
+            for(int j=1; j<n+1; j++) {
+                if (nums1[i-1]!=nums2[j-1]) {
+                    dp[i][j] = 0;
+                } else {
+                    dp[i][j] = dp[i-1][j-1] + 1;
+                }
+                max = std::max(max, dp[i][j]);
+            }
+        }
+        return max;
+    }
+};
+
+// 最长上升子序列个数
+class Solution {
+public:
+    int findNumberOfLIS(vector<int>& nums) {
+        int n = nums.size();
+        vector<int> dp(n, 0);
+        vector<int> cnt(n, 1);
+        int ans=0;
+        int maxlen = INT_MIN;
+        for (int i=0; i<n; i++) {
+            for (int j=0; j<i; j++) {
+                if (nums[i]>nums[j]) {
+                    if (dp[i]<dp[j]+1) {
+                        dp[i] = dp[j]+1;
+                        cnt[i] = cnt[j];
+                    } else if (dp[i]==dp[j]+1) {
+                        cnt[i] += cnt[j];
+                    }
+                }
+            }
+            if (maxlen < dp[i]) {
+                maxlen = dp[i];
+                ans  = cnt[i];
+            } else if (maxlen==dp[i]) {
+                ans += cnt[i];
+            }
+        }
+        return ans;
+    }
+};
+
+// 字典序的第k小数字
+class Solution {
+public:
+    int findKthNumber(int n, int k) {
+        long cur=1;
+        k = k-1;
+        while (k) {
+            long steps = getSteps(n, cur);
+            if (steps <= k) {
+                k -= steps;
+                cur += 1;
+            } else {
+                cur *= 10;
+                k -= 1;
+            }
+        }
+        return cur;
+    }
+private:
+    int getSteps(long n, long cur){
+        long steps=0;
+        long first=cur, last=cur;
+        while (first<=n) {
+            steps += std::min(n, last)-first+1;
+            first *= 10;
+            last = last*10 + 9;
+        }
+        return steps;
+    }
+};
+
+// 递增三元组子序列
+class Solution {
+public:
+    bool increasingTriplet(vector<int>& nums) {
+        int first = nums[0];
+        int second = INT_MAX;
+        for (int i=1; i<nums.size(); i++) {
+            if (nums[i]>second) {
+                return true;
+            } else {
+                if (nums[i]<=first) {
+                    first = nums[i];
+                } else {
+                    second = std::min(nums[i], second);
+                }
+            }
+        }
+        return false;
     }
 };

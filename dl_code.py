@@ -77,6 +77,28 @@ def apply_rotary_pos_emb(q, k, cos, sin, position_id):
 
 ############################################################################################################
 
+import torch
+import torch.nn.functional as F
+
+# LaryerNorm x = \gamma * \frac{x-mean}{sqrt(std)} + \beta
+class LayerNorm(torch.nn.Module):
+    def __init__(self, features, eps=1e-6):
+        super(LayerNorm, self).__init__()
+        self.gamma = torch.nn.Parameter(torch.ones(features))
+        self.beta = torch.nn.Parameter(torch.zeros(features))
+        self.eps = eps
+
+    def forward(self, x):
+        mean = x.mean(-1, keepdim=True)
+        std = x.std(-1, keepdim=True)
+        return self.gamma * (x - mean) / (std + self.eps) + self.beta
+
+# 使用示例
+input_tensor = torch.randn(3, 4, 5)  # 输入 tensor 大小为 (batch_size, seq_len, features)
+layer_norm = LayerNorm(5)  # LayerNorm 将 features 设置为 5
+output = layer_norm(input_tensor)
+print(output)
+
 # RMSNorm: x = \frac{x}{\sum sqrt(x_{i}^2)}
 
 class RMSNorm(nn.Module):
@@ -492,3 +514,38 @@ batch_size = 32
 inputs = torch.randn(batch_size, seq_len, input_size)
 sliding_attention = SlidingWindowAttention(input_size, window_size, hidden_size)
 output = sliding_attention(inputs)
+
+############################################################################################################
+# beam_search decode
+class BeamSearchNode:
+    def __init__(self, sequence, score):
+        self.sequence = sequence
+        self.score = score
+
+def next_words_probs_infer(sequence):
+    probs = model.forward(sequence)
+
+def beam_search(initial_sequence, next_words_probs_infer_func, beam_size, max_sequence_length):
+    # 初始化初始节点，且分数为1
+    initial_node = BeamSearchNode(sequence=initial_sequence, score=1.0)
+    candidates = [initial_node]
+    final_candidates = []  # 最终的候选序列
+    # 只要候选节点列表不为空，且 final_candidates 中的候选节点数量还没有达到指定的束宽度，就继续进行搜索
+    while candidates and len(final_candidates) < num_beams:
+        # 候选节点排序
+        candidates.sort(key=lambda x: -x.score)
+        current_node = candidates.pop(0)
+        # 当节点序列末尾生成结束符号（如"<end>"），或者当生成的序列长度达到最大限制时终止节点的扩展
+        if current_node.sequence[-1] == "<end>" or len(current_node.sequence) >= max_sequence_length:
+            final_candidates.append(current_node)
+        else:
+            # 获取下一个token的概率，我们的例子返回的是固定的概率
+            next_words_probs = next_word_probs_func(current_node.sequence)
+            # 生成新的候选序列，并计算分数
+            for next_word, next_word_prob in next_words_probs.items():
+                new_sequence = current_node.sequence + [next_word]
+                new_score = current_node.score * next_word_prob
+                new_node = BeamSearchNode(sequence=new_sequence, score=new_score)
+                candidates.append(new_node)
+
+    return [candidate.sequence for candidate in final_candidates]
