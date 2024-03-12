@@ -1293,6 +1293,24 @@ private:
     }
 };
 
+class LowestCommonAncestor {
+public:
+    TreeNode* lowestCommonAncestor(TreeNode* root, TreeNode* p, TreeNode* q) {
+        if (!root || root->val==p->val || root->val==q->val) {
+            return root;
+        }
+        TreeNode* leftancestor = lowestCommonAncestor(root->left, p, q);
+        TreeNode* rightancestor= lowestCommonAncestor(root->right, p, q);
+        if (!leftancestor) {
+            return rightancestor;
+        }
+        if (!rightancestor) {
+            return leftancestor;
+        }
+        return root;
+    }
+};
+
 // 岛屿数量
 class NumIsland {
 public:
@@ -3092,5 +3110,61 @@ public:
             }
         }
         return false;
+    }
+};
+
+// rand7 -> rand10
+class Solution {
+public:
+    int rand10() {
+        while (true) {
+            int a = rand7();
+            int b = rand7();
+            int x = (a-1)*b + 7;
+            if (x<=40) {
+                return 1 + x%10;
+            }
+        }
+    }
+}
+
+// 找到k个最接近的元素
+class Solution {
+public:
+    vector<int> findClosestElements(vector<int>& arr, int k, int x) {
+        int n = arr.size();
+        if (n<=k) {
+            return arr;
+        }
+        int right = std::lower_bound(arr.begin(), arr.end(), x) - arr.begin();
+        int left = right-1;
+        for (int i=0; i<k; i++) {
+            if(left<0) {
+                right++;
+            } else if (right>=n) {
+                left--;
+            } else if (x-arr[left]<=arr[right]-x) {
+                left--;
+            } else {
+                right++;
+            }
+        }
+        return vector<int>(arr.begin()+left+1, arr.begin()+right);
+    }
+};
+
+// 不同的二叉搜索树
+class Solution {
+public:
+    int numTrees(int n) {
+        vector<int> dp(n+1, 1);
+        dp[0]=1;
+        dp[1]=1;
+        for (int i=2; i<n+1; i++) {
+            for (int j=1; j<i+1; j++){
+                dp[i] += dp[j-1]*dp[i-j];
+            }
+        }
+        return dp[n];
     }
 };
