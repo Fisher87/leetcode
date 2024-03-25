@@ -3168,3 +3168,220 @@ public:
         return dp[n];
     }
 };
+
+// 缺失的第一个正数
+class Solution {
+public:
+    int firstMissingPositive(vector<int>& nums) {
+        int n = nums.size();
+        for (int i=0; i<n; i++) {
+            while (nums[i]>=1 && nums[i]<=n && (nums[i]!=nums[nums[i]-1])) {
+                std::swap(nums[i], nums[nums[i]-1]);
+            }
+        }
+        for (int i=0; i<n; i++) {
+            if (nums[i]!=(i+1)) {
+                return i+1;
+            }
+        }
+        return n+1;
+    }
+};
+
+// 买卖股票的最佳时机III
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int n = prices.size();
+        int buy1=-prices[0], buy2=-prices[0];
+        int sell1=0, sell2=0;
+        for (int i=1; i<n; i++){
+            buy1 = std::max(buy1, -prices[i]);
+            sell1 = std::max(buy1+prices[i], sell1);
+            buy2 = std::max(buy2, sell1-prices[i]);
+            sell2= std::max(buy2+prices[i], sell2);
+        }
+        return sell2;
+    }
+};
+
+// 二叉树右视图 
+class Solution {
+public:
+    vector<int> rightSideView(TreeNode* root) {
+        if (!root) {
+            return {};
+        }
+        std::queue<TreeNode*> stack;
+        stack.push(root);
+        vector<int> ans;
+        while(!stack.empty()) {
+            int size = stack.size();
+            std::vector<int> tmp;
+            for(int i=0; i<size; i++) {
+                TreeNode* node = stack.front();
+                stack.pop();
+                tmp.push_back(node->val);
+                if (node->left) {
+                    stack.push(node->left);
+                }
+                if (node->right) {
+                    stack.push(node->right);
+                }
+            }
+            ans.push_back(tmp.back());
+        }
+        return ans;
+
+    }
+};
+
+// 搜索二维矩阵
+class Solution {
+public:
+    bool searchMatrix(vector<vector<int>>& matrix, int target) {
+        int m = matrix.size();
+        int n = matrix[0].size();
+
+        int i=0;
+        int j=n-1;
+        while(i<m && i>=0 && j<n && j>=0) {
+            if (matrix[i][j]==target) {
+                return true;
+            } else if (matrix[i][j]<target) {
+                i++;
+            } else {
+                j--;
+            }
+        }
+        return false;
+    }
+};
+
+//矩阵中最长递增子序列
+class Solution {
+public:
+    static constexpr int dirs[4][2] = { {-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+    int rows, cols;
+    int longestIncreasingPath(vector<vector<int>>& matrix) {
+        if (matrix.size()==0 || matrix[0].size()==0) {
+            return 0;
+        }
+        rows = matrix.size();
+        cols = matrix[0].size();
+        auto memo = vector< vector<int> > (rows, vector<int> (cols));
+        int ans = 0;
+        for (int i=0; i<rows; i++) {
+            for (int j=0; j<cols; j++) {
+                ans = std::max(ans, dfs(matrix, i, j, memo));
+            }
+        }
+        return ans;
+    }
+    int dfs(vector< vector<int> > &matrix, int row, int col, vector< vector<int> > &memo) {
+        if (memo[row][col]!=0) {
+            return memo[row][col];
+        }
+        ++memo[row][col];
+        for (int i=0; i<4; ++i){
+            int nrow = row+dirs[i][0], ncol = col+dirs[i][1];
+            if(nrow>=0 && nrow<rows && ncol>=0 && ncol<cols && matrix[nrow][ncol]>matrix[row][col]) {
+                memo[row][col] = max(memo[row][col], dfs(matrix, nrow, ncol, memo)+1);
+            }
+        }
+        return memo[row][col];
+    }
+};
+
+// 寻找旋转排序数组中的最小值
+class Solution {
+public:
+    int findMin(vector<int>& nums) {
+        int n = nums.size();
+        int left=0, right=n-1;
+        while (left<right) {
+            int mid = (left+right)/2;
+            if (nums[mid] > nums[right]) {
+                left = mid+1;
+            } else {
+                right = mid;
+            }
+        }
+        return nums[left];
+    }
+};
+
+// 圆圈中最后剩下的数字
+class Solution {
+public:
+    int lastEle(int num, int target) {
+        int pos = 0;
+        for(int i=2; i<num+1; i++) {
+            pos = (pos + target) % i;
+        }
+        return pos;
+    }
+};
+
+// 划分为k个相等的子集
+class Solution {
+public:
+    bool canPartionKSubsets(vector<int> &nums, int k) {
+        int total = accumulate(nums.begin(), nums.end(), 0);
+        int mod = total % k;
+        if(mod) {
+            return false;
+        }
+        int avg = total / k;
+        std::sort(nums.begin(), nums.end());
+        vector<int> cur(k, 0);
+        return dfs(0, nums, cur);
+    }
+private:
+    bool dfs(int i, vector<int>& nums, vector<int>& cur, int k, int avg) {
+        if (i==nums.size()) {
+            return true;
+        }
+        for (int j=0; j<k; j++) {
+            if(j>0 && cur[j]==cur[j-1]) {
+                continue;
+            } 
+            cur[j] += nums[i];
+            if (cur[j]<=avg && dfs(i+1, nums, cur, k, avg)) {
+                return true
+            }
+            cur[j] -= nums[i];
+        }
+        return false;
+    }
+};
+
+// 下一个排列
+class Solution {
+public:
+    void nextPermutation(vector<int>& nums) {
+        // 从后往前找，找到第一个降序位置，交换，然后将后面的重排；
+        int n = nums.size();
+        int i=n-2, j = n-1;
+        while (i>=0) {
+            if (nums[i]<nums[j]) {
+                break;
+            }
+            i -= 1;
+            j -= 1;
+        }
+        if (i<0) {
+            return std::reverse(nums.begin(), nums.end());
+        }
+        int k=n-1;
+        while (k>=j) {
+            if (nums[k]<=nums[i]) {
+                k--;
+            } else {
+                std::swap(nums[k], nums[i]);
+                break;
+            }
+        }
+        std::reverse(nums.begin()+j, nums.end());
+    }
+};

@@ -91,8 +91,7 @@ class BitCount:
 class EditDistance:
     def edit_dist(self, word1, word2):
         m, n = len(word1), len(word2)
-        
-        dp = [ [0]*(n+1) for _ in range(m)]
+        dp = [ [0]*(n+1) for _ in range(m+1)]
 
         for i in range(1, m+1):
             dp[i][0] = i
@@ -104,7 +103,7 @@ class EditDistance:
                 if word1[i-1] == word2[j-1]:
                     dp[i][j] = dp[i-1][j-1]
                 else:
-                    dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])
+                    dp[i][j] = min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) + 1
         return dp[m][n]
     
 class zigzagLevelOrder:
@@ -1554,10 +1553,7 @@ class MaxProfit:
     def maxProfit(self, prices):
         ans = 0
         for i in range(1, len(prices)):
-            if prices[i]>prices[i-1]:
-                ans += prices[i]-prices[i-1]
-            else:
-                continue
+            ans += max(prices[i]-prices[i-1], 0)
         return ans
 
 class FindLength:
@@ -2953,7 +2949,7 @@ class ReverseBetween:
             pre = pre.next
 
         cur = pre.next
-        for i in range(right-left):
+        for i in range(right-left):    # 整个过程中cur是不变的
             nxt = cur.next
             cur.next = nxt.next
             nxt.next = pre.next
@@ -7270,4 +7266,13 @@ class Solution:
 
 class Solution:
     def lowestCommonAncestor(self, root: 'TreeNode', p: 'TreeNode', q: 'TreeNode') -> 'TreeNode':
+        if not root or (root.val==p.val) or (root.val==q.val) :
+            return root
+        left = self.lowestCommonAncestor(root.left, p, q)
+        right= self.lowestCommonAncestor(root.right, p, q)
+        if not left:
+            return right
+        if not right:
+            return left
+        return root
 

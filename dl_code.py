@@ -549,3 +549,25 @@ def beam_search(initial_sequence, next_words_probs_infer_func, beam_size, max_se
                 candidates.append(new_node)
 
     return [candidate.sequence for candidate in final_candidates]
+
+############################################################################################################
+# cross entropy
+def cross_entropy(targets, predictions, eps=1e-6):
+    predictions = np.clip(predictions, eps, 1.0-eps)
+    ce = -np.sum(targets * np.log(predictions + eps))
+    return ce
+
+predictions = np.array([[0.6, 0.2, 0.2], [0.3, 0.4, 0.3]])
+targets = np.array([[1, 0, 0], [0, 1, 0]])
+loss = cross_entropy(predictions, targets)
+
+# softmax cross entropy
+def softmax_cross_entropy(targets, predictions, eps=1e-6):
+    exp_x = np.exp(predictions-np.max(predictions, axis=-1, keepdim=True))
+    pred_probs = exp_x / np.sum(exp_x, axis=-1, keepdim=True)
+    pred_probs = np.clip(pred_probs, eps, 1.0-eps)
+    ce = -np.sum(targets * np.log(pred_probs + eps))
+    return ce
+predictions = np.array([[2.0, 1.0, 0.1], [1.0, 0.9, 0.8]])
+targets = np.array([[1, 0, 0], [0, 1, 0]])
+loss = softmax_cross_entropy(predictions, targets)
