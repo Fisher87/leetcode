@@ -7276,3 +7276,26 @@ class Solution:
             return left
         return root
 
+class Solution:
+    def buildTree(self, preorder, inorder):
+        if not preorder:
+            return None
+        root = TreeNode(preorder[0])
+        stack = [root]
+
+        index = 0
+        for i in range(1, len(preorder)):
+            node = TreeNode(preorder[i])
+            if stack and stack[-1].val != inorder[index]:
+                stack[-1].left = node
+                stack.append(node)
+            else:
+                _root = stack[-1]
+                while stack and stack[-1].val == inorder[index]:
+                    _root = stack.pop(-1)
+                    index += 1
+                _root.right = node
+                stack.append(node)
+
+        return root
+

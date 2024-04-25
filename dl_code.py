@@ -516,39 +516,87 @@ sliding_attention = SlidingWindowAttention(input_size, window_size, hidden_size)
 output = sliding_attention(inputs)
 
 ############################################################################################################
+# greedy search decode
+
+def greedy_decode(model, tokenizer, input_ids, max_tokens=300):
+    for i in range(max_tokens):
+        outputs = model(input_ids)
+        next_token_logits = outputs.logits[:, -1, :]
+        next_token = torch.argmax(next_token_logits, dim=-1)
+        if next_token == tokenizer.eos_token_id:
+            break
+        input_ids = torch.cat([input_ids, rearrange(next_token, 'c -> 1 c')], dim=-1)
+    generated_text = tokenizer.decode(input_ids[0])
+
+    return generated_text
+
+############################################################################################################
 # beam_search decode
-class BeamSearchNode:
-    def __init__(self, sequence, score):
-        self.sequence = sequence
-        self.score = score
 
-def next_words_probs_infer(sequence):
-    probs = model.forward(sequence)
+def beam_search(model, input_ids, max_tokens=300, beam_size=3):
+    beam_scores = torch.zeros(beam_size).to(device)
+    beam_sequences = input_ids.clone()
+    activate_beams = torch.ones(beam_size, dtype=torch.bool)
+    for step in range(max_tokens):
+        outputs = model(beam_sequences)
+        next_token_logits = outputs.logits[:, -1, :]
+        probs = F.softmax(logits, dim=-1)
 
-def beam_search(initial_sequence, next_words_probs_infer_func, beam_size, max_sequence_length):
-    # 初始化初始节点，且分数为1
-    initial_node = BeamSearchNode(sequence=initial_sequence, score=1.0)
-    candidates = [initial_node]
-    final_candidates = []  # 最终的候选序列
-    # 只要候选节点列表不为空，且 final_candidates 中的候选节点数量还没有达到指定的束宽度，就继续进行搜索
-    while candidates and len(final_candidates) < num_beams:
-        # 候选节点排序
-        candidates.sort(key=lambda x: -x.score)
-        current_node = candidates.pop(0)
-        # 当节点序列末尾生成结束符号（如"<end>"），或者当生成的序列长度达到最大限制时终止节点的扩展
-        if current_node.sequence[-1] == "<end>" or len(current_node.sequence) >= max_sequence_length:
-            final_candidates.append(current_node)
-        else:
-            # 获取下一个token的概率，我们的例子返回的是固定的概率
-            next_words_probs = next_word_probs_func(current_node.sequence)
-            # 生成新的候选序列，并计算分数
-            for next_word, next_word_prob in next_words_probs.items():
-                new_sequence = current_node.sequence + [next_word]
-                new_score = current_node.score * next_word_prob
-                new_node = BeamSearchNode(sequence=new_sequence, score=new_score)
-                candidates.append(new_node)
+        top_scores, top_indices = torch.topk(probs.flatten(), k=beam_size, sorted=False)
+        beam_indices = top_indices // prob.shape[-1]  # prob.shape[-1] --> vocab size
+        token_indices= top_indices % prob.shape[-1]
 
-    return [candidate.sequence for candidate in final_candidates]
+        beam_sequences = torch.cat(
+            [beam_sequences[beam_indices], token_indices.unsqueeze(-1)], dim=-1
+        )
+
+        beam_scores = top_scores
+        activate_beams = ~(token_indices==tokenizer.eos_token_id)
+        if not activate_beams.any():
+            print("no activate beams")
+            break
+
+    best_bema = beam_scores.argmax()
+    best_sequence = beam_sequences[best_beam]
+    # Decode the best sequence to generate the final text.
+    generated_text = tokenizer.decode(best_sequence)
+
+    return generated_text
+
+############################################################################################################
+# top_k_sampling
+
+def top_k_sampling(model, input_ids, max_tokens=300, top_k=50, temperature=1.0):
+    for _ in range(max_tokens):
+        outputs = model(input_ids)
+        next_token_logits = outputs.logits[:, -1, :]
+        top_k_logits, top_k_indices = torch.topk(next_token_logits, top_k)
+        top_k_probs = F.softmax(top_k_logits/temperature, dim=-1)
+        next_token_index = torch.multinomial(top_k_probs, num_samples=1)
+        next_token = top_k_indices.gather(-1, next_token_index)
+        input_ids = torch.cat([input_ids, next_token], dim=-1)
+
+    generated_text = tokenizer.decode(input_ids[0])
+    return generated_text
+
+def top_p_sampling(model, input_ids, max_tokens=300, top_p=0.95):
+    for _ in range(max_tokens):
+        outputs = model(input_ids)
+        next_token_logits = outputs.logits[:, -1, :]
+        sorted_logits, sorted_indices = torch.sort(next_token_logits, descending=True)
+        sorted_probs = F.softmax(sorted_logits, dim=-1)
+        cumsum_probs = torch.cumsum(sorted_probs, dim=-1)
+        sorted_indices_to_remove = cusum_probs > top_p
+        sorted_indices_to_remove[..., 0] = False
+        indices_to_remove = sorted_indices[sorted_indices_to_remove]
+        next_token_logits.scatter_(-1, indices_to_remove[None, :], float('-inf'))
+        probs = F.softmax(next_token_logits, dim=-1)
+        next_token = torch.multinomial(probs, num_samples=1)
+        input_ids = torch.cat([input_ids, next_token], dim=-1)
+
+    generated_text = tokenizer.decode(input_ids[0])
+    return generated_text
+
 
 ############################################################################################################
 # cross entropy
@@ -571,3 +619,95 @@ def softmax_cross_entropy(targets, predictions, eps=1e-6):
 predictions = np.array([[2.0, 1.0, 0.1], [1.0, 0.9, 0.8]])
 targets = np.array([[1, 0, 0], [0, 1, 0]])
 loss = softmax_cross_entropy(predictions, targets)
+
+
+############################################################################################################
+# 使用numpy 编写MLP regression
+
+import numpy as np
+
+def mse_forward(y_pred, y_true):
+    return np.mean( (y_pred - y_true)**2 )
+def mse_backward(y_pred, y_true):
+    return 2*(y_pred-y_true) / len(y_pred)
+
+def relu_forward(x):
+    return np.maximum(0, x)
+def relu_backward(x):
+    return np.where( x>0, 1, 0 )
+
+# 参数初始化
+def init_parameters(input_dim, hidden_dim, output_dim):
+    W1 = np.random.randn(input_dim, hidden_dim)
+    b1 = np.zeros(1, hidden_dim)
+    W2 = np.random.randn(hidden_dim, output_dim)
+    b2 = np.zeros(1, output_dim)
+    return W1, b1, W2, b2
+
+# 前向传播
+def forward_propagation(X, W1, b1, W2, b2):
+    Z1 = np.dot(X, W1) + b1
+    A1 = relu(Z1)
+    Z2 = np.dot(A1, W2)+ b2
+    return Z1, A1, Z2
+
+# 反向传播
+def backward_propagation(X, Y, Z1, A1, Z2, W2):
+    dZ2 = mse_backward(Y, Z2)
+    dW2 = np.dot(A1.T, dZ2)
+    db2 = np.sum(dZ2, axis=0, keepdims=True)
+    dA1 = np.dot(dZ2, W2.T)
+    dZ1 = dA1 * relu_backward(Z1)
+    dW1 = np.dot(X.T, dZ1)
+    db1 = np.sum(dZ1, axis=0, keepdims=True)
+    return dW1, db1, dW2, db2
+
+# 参数更新
+def update_parameters(W1, b1, W2, b2, dW1, db1, dW2, db2, learning_rate):
+    W1 -= learning_rate * dW1
+    b1 -= learning_rate * db1
+    W2 -= learning_rate * dW2
+    b2 -= learning_rate * db2
+    return W1, b1, W2, b2
+
+# 构建数据
+X = np.random.rand(100, 10)
+Y = np.random.rand(100, 1)
+
+input_dim = 10
+hidden_dim = 5
+output_dim = 1
+learning_rate = 0.01
+epochs = 1000
+
+# 初始化参数
+W1, b1, W2, b2 = initialize_parameters(input_dim, hidden_dim, output_dim)
+
+# 训练模型
+for epoch in range(epochs):
+    # 前向传播
+    Z1, A1, Z2 = forward_propagation(X, W1, b1, W2, b2)
+
+    # 计算损失
+    loss = mse_loss(Y, Z2)
+
+    # 反向传播
+    dW1, db1, dW2, db2 = backward_propagation(X, Y, Z1, A1, Z2, W2)
+
+    # 更新参数
+    W1, b1, W2, b2 = update_parameters(W1, b1, W2, b2, dW1, db1, dW2, db2, learning_rate)
+
+    if (epoch+1) % 100 == 0:
+        print(f'Epoch [{epoch+1}/{epochs}], Loss: {loss}')
+
+# 验证端到端正确性 - 使用训练好的模型进行预测
+def predict(X, W1, b1, W2, b2):
+    Z1, A1, Z2 = forward_propagation(X, W1, b1, W2, b2)
+    return Z2
+
+# 示例验证端到端正确性
+test_input = np.random.rand(10, 10)  # 使用10个样本进行测试
+predictions = predict(test_input, W1, b1, W2, b2)
+print("Predictions:")
+print(predictions)
+

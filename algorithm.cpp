@@ -1238,6 +1238,7 @@ public:
         if(root==nullptr){
             return ans;
         }
+        ans.clear()
         queue<TreeNode*> dq;
         dq.push(root);
         bool l2r = true;
@@ -3383,5 +3384,187 @@ public:
             }
         }
         std::reverse(nums.begin()+j, nums.end());
+    }
+};
+
+// 二叉树后序遍历
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        if(!root){ return {}; }       
+        vector<int> ans;
+        stack<TreeNode*> st;
+        TreeNode* pre = nullptr
+        while (root || !st.empty()) {
+            while (root) {
+                st.push(root);
+                root = root->left;
+            }
+            root = st.top();
+            st.pop();
+            if (!root->right || root->right=pre) {    // 因为之前已经遍历过right，防止再遍历
+                ans.push_back(root->val);
+                pre = root;
+                root = nullptr;
+            } else {
+                st.push(root);
+                root = root->right;
+            }
+        }
+        return ans;
+    }
+
+    vector<int> postorderTraversal2(TreeNode* root) {
+        if(!root) {
+            return {};
+        }
+        vector<int> ans;
+        dfs(root, ans);
+        return ans;
+    }
+private:
+    void dfs(TreeNode* root, vector<int> &ans){
+        if (!root){
+            return ;
+        }
+        dfs(root->left);
+        dfs(root->right);
+        ans.push_back(root->val);
+    }
+};
+
+// 最大交互
+class Solution{
+public:
+    int maxSwap(int num) {
+        string num_str = to_string(num);
+        int n = num_str.size();
+        int max_num = num;
+        for(int i=0; i<n; i++) {
+            for(int j=n-1; j>i; j--) {
+                swap(num_str[i], num_str[j]);
+                max_num = max(max_num, stoi(num_str));
+                swap(num_str[i], num_str[j]);
+            }
+        }
+        return max_num;
+    }
+};
+
+// 判断环形链表
+class Solution {
+public:
+    bool hasCycle(ListNode *head) {
+        if (!head) {
+            return false;
+        }
+        ListNode *slow=head, *fast=head->next;
+        while (fast && fast->next) {
+            slow = slow->next;
+            fast = fast->next->next;
+            if (slow==fast) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+//递增顺序查找树
+class Solution {
+public:
+    TreeNode* increasingBST(TreeNode* root) {
+        if (!root) {
+            return nullptr;
+        }
+        vector<int> nodes;
+        inorder(root, nodes);
+
+        TreeNode* nroot = new TreeNode(nodes[0]);
+        TreeNode* cur = nroot;
+        for (int i=1; i<nodes.size(); i++){
+            cur->right = new TreeNode(nodes[i]);
+            cur = cur->right;
+        }
+        return nroot;
+    }
+private:
+    void inorder(TreeNode* root, vector<int> &nodes) {
+        if (!root) {
+            return;
+        }
+        inorder(root->left, nodes);
+        nodes.push_back(root->val);
+        inorder(root->right, nodes);
+    }
+};
+
+// 最小高度数
+class Solution {
+public:
+    vector<int> findMinHeightTrees(int n, vector<vector<int>>& edges) {
+        if (n<=1) {
+            return {0};
+        }
+        std::unordered_map<int, int> node_degree;
+        std::unordered_map<int, vector<int>> node_edges;
+        for(auto& edge: edges) {
+            int s = edge[0], e = edge[1];
+            node_degree[s]++;
+            node_degree[e]++;
+            node_edges[s].push_back[e];
+            node_edges[e].push_back[s];
+        }
+
+        std::queue<int> stack;
+        for(int i=0; i<n; i++){
+            if (node_degree[i]==1){
+                stack.push(i);
+            }
+        }
+
+        std::vector<int> ans;
+        while(!stack.empty) {
+            res.clear();
+            int size = stack.size();
+            for (int i=0; i<size; i++) {
+                int node = stack.front();
+                stack.pop();
+                ans.push_back(node)
+                for(int e: node_edges[node]) {
+                    node_degree[e]--;
+                    if (node_degree[e]==1){
+                        stack.push(e);
+                    }
+                }
+            }
+        }
+        return ans;
+    }
+};
+
+// 两数之和，有序数组
+class Solution {
+public:
+    vector<int> twoSum(vector<int>& numbers, int target) {
+        int n = numbers.size();
+        int left=0, right=n-1;
+        vector<int> ans;
+        while(left<right){
+            if (left>1 && nums[left]==nums[left-1]) {
+                left++;
+            }
+            if (right<n-1 && nums[right]==nums[right+1]) {
+                right--;
+            }
+            if (nums[left]+nums[right]==target){
+                return {left+1, right+1};
+            } else if(nums[left]+nums[right]>target) {
+                right--;
+            } else {
+                left++;
+            }
+        }
+        return {-1, -1};
     }
 };
