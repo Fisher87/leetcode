@@ -27,6 +27,12 @@ def viterbi(obs, states, start_prob, trans_prob, emission_prob):
             viterbi_mat[s, t] = np.max(prob)
             path_mat[s, t] = np.argmax(prob)
 
+    # 使用矩阵
+    # for t in range(1, T):
+    #     prob = veiterbi_mat[:, t-1][:, None] + trans + emission_prob[obs[t]]
+    #     viterbi_mat[t] = prob.max(0)
+    #     path_mat[t] = prob.argmax(0)
+
     best_path = [np.argmax(viterbi_mat[:, -1])]
     for t in range(T-1, 0, -1):
         best_path.insert(0, path_mat[best_path[0], t])
@@ -40,7 +46,7 @@ class RotaryEmbedding(nn.Module):
         super().__init__()
         self.scale = scale
         # 构建基值向量
-        inv_freq = 1.0 / ( base**(torch.arange(0, dim//2, 2).float().to(device)/dim) )
+        inv_freq = 1.0 / ( base**(torch.arange(0, dim, 2).float().to(device)/dim) )
         self.register_buffer('inv_freq', inv_freq)
 
         self.max_seq_len_cached = max_position_embeddings
@@ -113,12 +119,6 @@ class RMSNorm(nn.Module):
     def forward(self, x):
         output = self._norm(x.float()).type_as(x)
         return output * self.weight
-
-############################################################################################################
-
-class LayerNorm(nn.Module):
-    def __init__():
-        pass
 
 ############################################################################################################
 
@@ -195,8 +195,9 @@ class SelfAttention(nn.Module):
         dist = torch.softmax(dist, dim=-1)
         attn = torch.matmul(dist, v)
         attn = attn.transpose(1, 2).reshape(bs, seq_len, -1)
+        output= self.o_linear(attn)
 
-        return attn
+        return output
 
 ############################################################################################################
 # multiquery attention
@@ -221,7 +222,7 @@ class MQA(nn.Module):
                 needs_weights=False):
         # qkv
         qkv = self.Wqkv(x)
-        query, key, value = qkv.split( [self.d_model, self.head_dim, self.head_dim], dim=2)
+        query, key, value = qkv.split( [self.d_model, self.head_dim, self.head_dim], dim=2 )
         key_padding_mask = attention_mask
 
         context, attn_weights, past_key_value = self.attn_fn(query, key, value, 
@@ -538,7 +539,7 @@ def beam_search(model, input_ids, max_tokens=300, beam_size=3):
     beam_sequences = input_ids.clone()
     activate_beams = torch.ones(beam_size, dtype=torch.bool)
     for step in range(max_tokens):
-        outputs = model(beam_sequences)
+        outputs = model(beam_sequences)    # 这里使用的是beam sequences
         next_token_logits = outputs.logits[:, -1, :]
         probs = F.softmax(logits, dim=-1)
 
@@ -550,13 +551,13 @@ def beam_search(model, input_ids, max_tokens=300, beam_size=3):
             [beam_sequences[beam_indices], token_indices.unsqueeze(-1)], dim=-1
         )
 
-        beam_scores = top_scores
+        beam_scores = beam_scores[beam_indices] + top_scores
         activate_beams = ~(token_indices==tokenizer.eos_token_id)
         if not activate_beams.any():
             print("no activate beams")
             break
 
-    best_bema = beam_scores.argmax()
+    best_beam = beam_scores.argmax()
     best_sequence = beam_sequences[best_beam]
     # Decode the best sequence to generate the final text.
     generated_text = tokenizer.decode(best_sequence)
