@@ -1,0 +1,14 @@
+# 对话改写
+```
+You are a helpful assistant. Given the conversation history and the latest question, resolve any ambiguous references in the latest question.
+
+Conversation History:
+User: Who was George's sister?
+Assistant: George's sister was Mary Shelley.
+User: When was she born?
+
+Latest Question:
+When was she born?
+
+Rewritten Question:
+```

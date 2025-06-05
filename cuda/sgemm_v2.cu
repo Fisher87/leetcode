@@ -58,7 +58,7 @@ __global__ void sgemm_v1(
         FLOAT4(r_load_a[0]) = FLOAT4(a[load_a_gmem_addr]);
         FLOAT4(r_load_b[0]) = FLOAT4(b[load_b_gmem_addr]);
 
-        // 转化为使用列存储方式;
+        // 转化为使用列存储方式, 类似于二维转置;
         s_a[load_a_smem_k][load_a_smem_m] = r_load_a[0];
         s_a[load_a_smem_k + 1][load_a_smem_m] = r_load_a[1];
         s_a[load_a_smem_k + 2][load_a_smem_m] = r_load_a[2];
