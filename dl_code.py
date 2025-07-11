@@ -712,3 +712,50 @@ predictions = predict(test_input, W1, b1, W2, b2)
 print("Predictions:")
 print(predictions)
 
+#########################################################################
+# DPO loss
+
+import torch
+import torch.nn.functional as F
+
+def dpo_loss(
+    policy_chosen_logps: torch.Tensor,  # 策略模型对chosen响应的对数概率 [batch]
+    policy_rejected_logps: torch.Tensor, # 策略模型对rejected响应的对数概率 [batch]
+    ref_chosen_logps: torch.Tensor,     # 参考模型对chosen响应的对数概率 [batch]
+    ref_rejected_logps: torch.Tensor,   # 参考模型对rejected响应的对数概率 [batch]
+    beta: float = 0.1                   # 奖励强度系数
+) -> torch.Tensor:
+    # 计算隐式奖励
+    reward_chosen = beta * (policy_chosen_logps - ref_chosen_logps)
+    reward_rejected = beta * (policy_rejected_logps - ref_rejected_logps)
+    
+    # 计算奖励差异
+    logits = reward_chosen - reward_rejected
+    
+    # 使用二元交叉熵损失（目标为1，表示chosen应优于rejected）
+    loss = F.binary_cross_entropy_with_logits(
+        logits, 
+        torch.ones_like(logits)  # 目标标签全1
+    )
+
+def dpo_loss_with_kl(
+    policy_chosen_logps: torch.Tensor,
+    policy_rejected_logps: torch.Tensor,
+    ref_chosen_logps: torch.Tensor,
+    ref_rejected_logps: torch.Tensor,
+    beta: float = 0.1,
+    kl_coef: float = 0.1,  # KL惩罚系数
+):
+    # 计算标准DPO损失
+    loss_dpo = dpo_loss(policy_chosen_logps, policy_rejected_logps, 
+                         ref_chosen_logps, ref_rejected_logps)
+    
+    # 计算KL散度（近似为对数概率差异的平方）
+    kl_chosen = (policy_chosen_logps - ref_chosen_logps) ** 2   # 参考：https://zhuanlan.zhihu.com/p/25208314999
+    kl_rejected = (policy_rejected_logps - ref_rejected_logps) ** 2
+    kl_penalty = 0.5 * (kl_chosen + kl_rejected).mean()
+    
+    # 总损失 = DPO损失 + KL惩罚
+    total_loss = loss_dpo + kl_coef * kl_penalty
+    return total_loss
+    return loss
